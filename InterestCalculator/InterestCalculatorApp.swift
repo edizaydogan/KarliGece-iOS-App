@@ -11,7 +11,8 @@ import SwiftUI
 struct InterestCalculatorApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            // Geçici yer tutucu — Adım 5'te RootTabView ile değiştirilecek.
+            Text("Karlı Gece")
         }
     }
 }

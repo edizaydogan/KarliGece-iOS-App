@@ -6,10 +6,11 @@
 import SwiftUI
 
 struct RootTabView: View {
-    @State private var selection: AppTab = .summary
+    @Environment(AppState.self) private var state
 
     var body: some View {
-        TabView(selection: $selection) {
+        @Bindable var state = state
+        TabView(selection: $state.selectedTab) {
             Tab("Özet", systemImage: "moon.stars", value: AppTab.summary) {
                 SummaryScreen()
             }

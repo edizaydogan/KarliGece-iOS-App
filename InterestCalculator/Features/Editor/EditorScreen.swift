@@ -24,7 +24,8 @@ struct EditorScreen: View {
             Section("Para") {
                 LabeledContent("Toplam tutar") {
                     DecimalTextField(unit: "₺", text: $state.balanceText,
-                                     field: .balance, focused: $focused, kind: .money)
+                                     field: .balance, focused: $focused, kind: .money,
+                                     identifier: "balanceField")
                 }
             }
             .listRowBackground(Color.drift)
@@ -74,7 +75,8 @@ struct EditorScreen: View {
                     }
                     LabeledContent("Yıllık oran") {
                         DecimalTextField(unit: "%", text: $state.banks[index].annualRateText,
-                                         field: .rate, focused: $focused, kind: .rate)
+                                         field: .rate, focused: $focused, kind: .rate,
+                                         identifier: "rateField")
                     }
                     Picker("İlan tabanı", selection: $state.banks[index].rateBasis) {
                         Text("Brüt").tag(RateBasis.gross)

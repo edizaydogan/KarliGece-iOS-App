@@ -13,9 +13,8 @@ import Foundation
 /// Golden tablosundaki tüm değerler half-up ve bankers'da AYNI çıktığı için
 /// modu ayırt eden tek vaka şudur: `0,005` -> half-up **0,01**, bankers **0,00**.
 ///
-/// NOT (Adım 2/3'te onaylanacak): `standard = .halfUp` varsayımı, Türk
-/// bankacılık konvansiyonuna dayanan bir seçimdir; hesaplama adımlarına
-/// geçerken kullanıcıyla teyit edilecek.
+/// KARAR (Adım 3'te onaylandı): `standard = .halfUp` — Türk bankacılık
+/// konvansiyonu. Ayırt edici test (0,005 -> 0,01) Adım 4'te yazılacak.
 nonisolated enum RoundingPolicy: Hashable, Sendable {
     /// Yarımlar sıfırdan uzağa (0,005 -> 0,01).
     case halfUp

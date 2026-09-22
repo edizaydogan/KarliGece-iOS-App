@@ -18,6 +18,8 @@ final class AppState {
     var nights: Int = 1
     var banks: [BankConditionDraft] = [.blankDefault]
     var selectedBankID: UUID?
+    /// Aktif sekme — ekranlar arası geçiş (ör. boş durumdan Tab 2'ye) için.
+    var selectedTab: AppTab = .summary
 
     init() {}
 

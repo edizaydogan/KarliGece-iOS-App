@@ -139,6 +139,7 @@ struct SummaryScreen: View {
         .frame(maxWidth: 560)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibility + (display.message.map { ". \($0)" } ?? ""))
+        .accessibilityIdentifier("netResultValue")
     }
 
     @ViewBuilder
@@ -384,6 +385,7 @@ struct SummaryScreen: View {
                 .font(.headline)
                 .foregroundStyle(.ink)
                 .multilineTextAlignment(.center)
+                .accessibilityIdentifier("resultPlaceholder")
             Button {
                 state.selectedTab = .editor
             } label: {

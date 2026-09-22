@@ -28,6 +28,7 @@ struct DecimalTextField: View {
     @FocusState.Binding var focused: EditorField?
     let kind: Kind
     var placeholder: String = "0"
+    var identifier: String? = nil
 
     var body: some View {
         HStack(spacing: 4) {
@@ -37,6 +38,7 @@ struct DecimalTextField: View {
                 .multilineTextAlignment(.trailing)
                 .monospacedDigit()
                 .foregroundStyle(.ink)
+                .accessibilityIdentifier(identifier ?? "")
                 .focused($focused, equals: field)
                 .onChange(of: focused) { previous, current in
                     // Bu alandan çıkıldığında normalize et.

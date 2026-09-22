@@ -9,10 +9,12 @@ import SwiftUI
 
 @main
 struct InterestCalculatorApp: App {
+    @State private var state = AppState()
+
     var body: some Scene {
         WindowGroup {
-            // Geçici yer tutucu — Adım 5'te RootTabView ile değiştirilecek.
-            Text("Karlı Gece")
+            RootTabView()
+                .environment(state)
         }
     }
 }

@@ -7,6 +7,7 @@ import SwiftUI
 
 struct RootTabView: View {
     @Environment(AppState.self) private var state
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         @Bindable var state = state
@@ -20,6 +21,10 @@ struct RootTabView: View {
             Tab("Karşılaştır", systemImage: "chart.line.uptrend.xyaxis", value: AppTab.compare) {
                 CompareScreen()
             }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // Uygulama etkin olmaktan çıkınca (arka plan/inaktif) tüm oturumu kaydet.
+            if phase != .active { state.save() }
         }
     }
 }

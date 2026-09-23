@@ -13,12 +13,12 @@ import Foundation
 struct BankConditionDraft: Identifiable, Hashable {
 
     /// Vadesiz şartının türü (UI seçici için).
-    enum IdleKind: Hashable, CaseIterable {
+    enum IdleKind: Hashable, CaseIterable, Codable {
         case none, percentage, fixedAmount, tiered
     }
 
     /// Kademeli şartta tek satırın taslağı. Üst sınır boşsa "ve üzeri" yakalayıcı.
-    struct TierDraft: Identifiable, Hashable {
+    struct TierDraft: Identifiable, Hashable, Codable {
         let id: UUID
         var upperBoundText: String
         var amountText: String

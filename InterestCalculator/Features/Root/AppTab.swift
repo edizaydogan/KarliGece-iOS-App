@@ -5,6 +5,6 @@
 
 import Foundation
 
-enum AppTab: Hashable {
+enum AppTab: Hashable, Codable {
     case summary, editor, compare
 }

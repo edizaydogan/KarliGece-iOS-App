@@ -22,6 +22,7 @@ final class InterestCalculatorUITests: XCTestCase {
     @MainActor
     func testAllThreeTabsOpen() throws {
         let app = XCUIApplication()
+        app.launchArguments = ["-uitesting"]   // kalıcılığı atla: her test temiz durumdan başlar
         app.launch()
 
         app.tabBars.buttons["Özet"].tap()
@@ -37,6 +38,7 @@ final class InterestCalculatorUITests: XCTestCase {
     @MainActor
     func testEndToEndHappyPath() throws {
         let app = XCUIApplication()
+        app.launchArguments = ["-uitesting"]   // kalıcılığı atla: her test temiz durumdan başlar
         app.launch()
 
         // Başlangıçta Tab 1 boş: sonuç yer tutucusu görünür.

@@ -2,7 +2,7 @@
 //  InterestEngineGoldenTests.swift
 //  InterestCalculatorTests
 //
-//  Elle hesaplanmış, teste pinlenmiş uçtan uca değerler.
+//  Elle hesaplanmış, teste pinlenmiş uçtan uca değerler. Stopaj %17,5.
 //
 
 import Testing
@@ -26,16 +26,16 @@ struct InterestEngineGoldenTests {
     func golden1() {
         let r = InterestEngine.calculate(makeInput(total: d("100000"), nights: 1,
                                                    condition: flat(45, idle: .percentage(.percent(10))),
-                                                   withholdingPercent: 15))
+                                                   withholdingPercent: 17.5))
         #expect(r.idleAmount == d("10000"))
         #expect(r.interestBearingBalance == d("90000"))
         #expect(r.totalGrossInterest == d("110.96"))
-        #expect(r.totalDeductions == d("16.64"))
-        #expect(r.netInterest == d("94.32"))
+        #expect(r.totalDeductions == d("19.42"))
+        #expect(r.netInterest == d("91.54"))
         expectClose(r.grossEffectiveAnnualRate!.percentValue, d("40.5004"))
-        expectClose(r.netEffectiveAnnualRate!.percentValue, d("34.4268"))
+        expectClose(r.netEffectiveAnnualRate!.percentValue, d("33.4121"))
         #expect(displayPercent(r.grossEffectiveAnnualRate) == d("40.50"))
-        #expect(displayPercent(r.netEffectiveAnnualRate) == d("34.43"))
+        #expect(displayPercent(r.netEffectiveAnnualRate) == d("33.41"))
         assertInvariants(r)
     }
 
@@ -43,10 +43,10 @@ struct InterestEngineGoldenTests {
     func golden2() {
         let r = InterestEngine.calculate(makeInput(total: d("100000"), nights: 3,
                                                    condition: flat(45, idle: .percentage(.percent(10))),
-                                                   withholdingPercent: 15))
+                                                   withholdingPercent: 17.5))
         #expect(r.totalGrossInterest == d("332.88"))
-        #expect(r.totalDeductions == d("49.93"))
-        #expect(r.netInterest == d("282.95"))
+        #expect(r.totalDeductions == d("58.25"))
+        #expect(r.netInterest == d("274.63"))
         assertInvariants(r)
     }
 
@@ -54,10 +54,10 @@ struct InterestEngineGoldenTests {
     func golden3() {
         let r = InterestEngine.calculate(makeInput(total: d("90000"), nights: 1,
                                                    condition: flat(45, dayCount: .actual360),
-                                                   withholdingPercent: 15))
+                                                   withholdingPercent: 17.5))
         #expect(r.totalGrossInterest == d("112.50"))
-        #expect(r.totalDeductions == d("16.88"))
-        #expect(r.netInterest == d("95.62"))
+        #expect(r.totalDeductions == d("19.69"))
+        #expect(r.netInterest == d("92.81"))
         assertInvariants(r)
     }
 
@@ -65,13 +65,13 @@ struct InterestEngineGoldenTests {
     func golden4() {
         let r = InterestEngine.calculate(makeInput(total: d("400000"), nights: 1,
                                                    condition: flat(45, idle: .percentage(.percent(10)), cap: d("250000")),
-                                                   withholdingPercent: 15))
+                                                   withholdingPercent: 17.5))
         #expect(r.idleAmount == d("40000"))
         #expect(r.interestBearingBalance == d("250000"))
         #expect(r.excessAboveCap == d("110000"))
         #expect(r.totalGrossInterest == d("308.22"))
-        #expect(r.netInterest == d("261.99"))
-        #expect(displayPercent(r.netEffectiveAnnualRate) == d("23.91"))
+        #expect(r.netInterest == d("254.28"))
+        #expect(displayPercent(r.netEffectiveAnnualRate) == d("23.20"))
         assertInvariants(r)
     }
 
@@ -81,22 +81,22 @@ struct InterestEngineGoldenTests {
         let cond = BankCondition(name: "t", rateRule: .flat(.percent(45)),
                                  idleRequirement: .tiered(cliffIdleTable()))
 
-        let r5 = InterestEngine.calculate(makeInput(total: d("50000"), nights: 1, condition: cond, withholdingPercent: 15))
+        let r5 = InterestEngine.calculate(makeInput(total: d("50000"), nights: 1, condition: cond, withholdingPercent: 17.5))
         #expect(r5.idleAmount == d("10000"))          // tam 50.000 → üst kademe
         #expect(r5.interestBearingBalance == d("40000"))
         #expect(r5.totalGrossInterest == d("49.32"))
-        #expect(r5.netInterest == d("41.92"))
+        #expect(r5.netInterest == d("40.69"))
 
-        let r6 = InterestEngine.calculate(makeInput(total: d("49999.99"), nights: 1, condition: cond, withholdingPercent: 15))
+        let r6 = InterestEngine.calculate(makeInput(total: d("49999.99"), nights: 1, condition: cond, withholdingPercent: 17.5))
         #expect(r6.idleAmount == d("5000"))           // alt kademe
         #expect(r6.interestBearingBalance == d("44999.99"))
         #expect(r6.totalGrossInterest == d("55.48"))
-        #expect(r6.netInterest == d("47.16"))
+        #expect(r6.netInterest == d("45.77"))
 
-        let r7 = InterestEngine.calculate(makeInput(total: d("50000.01"), nights: 1, condition: cond, withholdingPercent: 15))
+        let r7 = InterestEngine.calculate(makeInput(total: d("50000.01"), nights: 1, condition: cond, withholdingPercent: 17.5))
         #expect(r7.idleAmount == d("10000"))          // üst kademe
         #expect(r7.interestBearingBalance == d("40000.01"))
-        #expect(r7.netInterest == d("41.92"))
+        #expect(r7.netInterest == d("40.69"))
 
         assertInvariants(r5); assertInvariants(r6); assertInvariants(r7)
     }
@@ -105,20 +105,20 @@ struct InterestEngineGoldenTests {
     func golden15() {
         let r = InterestEngine.calculate(makeInput(total: d("100000"), nights: 1,
                                                    condition: flat(45, idle: .percentage(.percent(10)), basis: .net),
-                                                   withholdingPercent: 15))
+                                                   withholdingPercent: 17.5))
         #expect(r.netInterest == d("110.96"))
-        #expect(r.totalGrossInterest == d("130.54"))
-        #expect(r.totalDeductions == d("19.58"))
+        #expect(r.totalGrossInterest == d("134.50"))
+        #expect(r.totalDeductions == d("23.54"))
         assertInvariants(r)
     }
 
     @Test("Golden #16 — şart yok")
     func golden16() {
         let r = InterestEngine.calculate(makeInput(total: d("100000"), nights: 1,
-                                                   condition: flat(45), withholdingPercent: 15))
+                                                   condition: flat(45), withholdingPercent: 17.5))
         #expect(r.interestBearingBalance == d("100000"))
         #expect(r.totalGrossInterest == d("123.29"))
-        #expect(r.netInterest == d("104.80"))
+        #expect(r.netInterest == d("101.71"))
         assertInvariants(r)
     }
 

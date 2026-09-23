@@ -21,7 +21,33 @@ final class AppState {
     /// Aktif sekme — ekranlar arası geçiş (ör. boş durumdan Tab 2'ye) için.
     var selectedTab: AppTab = .summary
 
-    init() {}
+    init(loadPersisted: Bool = true) {
+        guard loadPersisted, !Self.isUITesting, let snapshot = SessionStore.load() else { return }
+        balanceText = snapshot.balanceText
+        withholdingText = snapshot.withholdingText
+        nights = snapshot.nights
+        selectedBankID = snapshot.selectedBankID
+        selectedTab = snapshot.selectedTab
+        banks = snapshot.banks
+    }
+
+    /// Tüm oturumu UserDefaults'a yazar. Uygulama arka plana geçince çağrılır.
+    func save() {
+        guard !Self.isUITesting else { return }
+        SessionStore.save(SessionSnapshot(
+            balanceText: balanceText,
+            withholdingText: withholdingText,
+            nights: nights,
+            selectedBankID: selectedBankID,
+            selectedTab: selectedTab,
+            banks: banks
+        ))
+    }
+
+    /// UI testlerinde kalıcılık atlanır (boş-durum assert'leri deterministik kalsın).
+    static var isUITesting: Bool {
+        ProcessInfo.processInfo.arguments.contains("-uitesting")
+    }
 
     /// Seçili banka; seçim geçersizse listenin ilkine düşer.
     var selectedBank: BankConditionDraft? {
@@ -135,7 +161,7 @@ final class AppState {
 
     /// Önizleme fixture'ı — her #Preview bununla sarılır, yoksa @Environment crash eder.
     static var preview: AppState {
-        let state = AppState()
+        let state = AppState(loadPersisted: false)
         state.balanceText = "100.000"
         state.withholdingText = "15"
         state.nights = 1

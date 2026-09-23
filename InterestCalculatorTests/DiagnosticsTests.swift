@@ -30,7 +30,7 @@ struct DiagnosticsTests {
     func negativeInputsClamped() {
         let r = InterestEngine.calculate(InterestInput(totalBalance: d("-100"), nights: -3,
             condition: BankCondition(name: "x", rateRule: .flat(.percent(-5))),
-            withholding: .single(.percent(15))))
+            withholding: .single(.percent(17.5))))
         #expect(r.diagnostics.contains(.negativeBalanceClamped))
         #expect(r.diagnostics.contains(.negativeNightsClamped))
         #expect(r.diagnostics.contains(.negativeRateClamped))
@@ -41,7 +41,7 @@ struct DiagnosticsTests {
     @Test("Vadesiz yüzdesi %100 üstü → clamp + error")
     func idleAboveHundred() {
         let r = InterestEngine.calculate(makeInput(total: d("100000"), nights: 1,
-            condition: condition(idle: .percentage(.percent(150))), withholdingPercent: 15))
+            condition: condition(idle: .percentage(.percent(150))), withholdingPercent: 17.5))
         #expect(r.diagnostics.contains(.idlePercentageAboveOneHundred))
         #expect(r.idleAmount == d("100000"))   // %100'e kırpıldı
         assertInvariants(r)
@@ -50,7 +50,7 @@ struct DiagnosticsTests {
     @Test("Oran %200 üstü → clamp YOK, yalnız uyarı")
     func unusuallyHighRate() {
         let r = InterestEngine.calculate(makeInput(total: d("100000"), nights: 1,
-            condition: condition(250), withholdingPercent: 15))
+            condition: condition(250), withholdingPercent: 17.5))
         #expect(r.diagnostics.contains(.unusuallyHighRate))
         #expect(r.totalGrossInterest > 0)      // kırpılmadı
         assertInvariants(r)
@@ -71,37 +71,37 @@ struct DiagnosticsTests {
         #expect(zeroWithholding.diagnostics.contains(.zeroWithholding))
         #expect(zeroWithholding.netInterest == zeroWithholding.totalGrossInterest)
 
-        let zeroRate = InterestEngine.calculate(makeInput(total: d("100000"), nights: 1, condition: condition(0), withholdingPercent: 15))
+        let zeroRate = InterestEngine.calculate(makeInput(total: d("100000"), nights: 1, condition: condition(0), withholdingPercent: 17.5))
         #expect(zeroRate.diagnostics.contains(.zeroRate))
 
-        let zeroNights = InterestEngine.calculate(makeInput(total: d("100000"), nights: 0, condition: base, withholdingPercent: 15))
+        let zeroNights = InterestEngine.calculate(makeInput(total: d("100000"), nights: 0, condition: base, withholdingPercent: 17.5))
         #expect(zeroNights.diagnostics.contains(.zeroNights))
 
-        let zeroBalance = InterestEngine.calculate(makeInput(total: 0, nights: 1, condition: base, withholdingPercent: 15))
+        let zeroBalance = InterestEngine.calculate(makeInput(total: 0, nights: 1, condition: base, withholdingPercent: 17.5))
         #expect(zeroBalance.diagnostics.contains(.zeroBalance))
     }
 
     @Test("Efektif oran: oran0 → 0 (nil değil); gece0/bakiye0 → nil")
     func effectiveNilRules() {
         let base = condition()
-        let zeroRate = InterestEngine.calculate(makeInput(total: d("100000"), nights: 1, condition: condition(0), withholdingPercent: 15))
+        let zeroRate = InterestEngine.calculate(makeInput(total: d("100000"), nights: 1, condition: condition(0), withholdingPercent: 17.5))
         #expect(zeroRate.grossEffectiveAnnualRate != nil)
         #expect(displayPercent(zeroRate.grossEffectiveAnnualRate) == 0)
 
-        let zeroNights = InterestEngine.calculate(makeInput(total: d("100000"), nights: 0, condition: base, withholdingPercent: 15))
+        let zeroNights = InterestEngine.calculate(makeInput(total: d("100000"), nights: 0, condition: base, withholdingPercent: 17.5))
         #expect(zeroNights.grossEffectiveAnnualRate == nil)
         #expect(zeroNights.netEffectiveAnnualRate == nil)
 
-        let zeroBalance = InterestEngine.calculate(makeInput(total: 0, nights: 1, condition: base, withholdingPercent: 15))
+        let zeroBalance = InterestEngine.calculate(makeInput(total: 0, nights: 1, condition: base, withholdingPercent: 17.5))
         #expect(zeroBalance.grossEffectiveAnnualRate == nil)
     }
 
     @Test("blockingIssues yalnız .error toplar")
     func blockingIssuesFiltersErrors() {
-        let r = InterestEngine.calculate(makeInput(total: d("100000"), nights: 0, condition: condition(), withholdingPercent: 15))
+        let r = InterestEngine.calculate(makeInput(total: d("100000"), nights: 0, condition: condition(), withholdingPercent: 17.5))
         // gece 0 (info) + stopaj var → bloklayıcı olmamalı
         #expect(r.blockingIssues.isEmpty)
-        let bad = InterestEngine.calculate(InterestInput(totalBalance: d("-1"), nights: 1, condition: condition(), withholding: .single(.percent(15))))
+        let bad = InterestEngine.calculate(InterestInput(totalBalance: d("-1"), nights: 1, condition: condition(), withholding: .single(.percent(17.5))))
         #expect(!bad.blockingIssues.isEmpty)
         #expect(bad.blockingIssues.allSatisfy { $0.severity == .error })
     }
@@ -120,7 +120,7 @@ struct DiagnosticsTests {
         ]
         let totals = [d("0"), d("1"), d("1000.05"), d("100000"), d("900000000000")]
         let nightsList = [0, 1, 3, 30]
-        let withholdings: [WithholdingRule] = [.none, .single(.percent(0)), .single(.percent(15)), .single(.percent(100))]
+        let withholdings: [WithholdingRule] = [.none, .single(.percent(0)), .single(.percent(17.5)), .single(.percent(100))]
 
         for c in conditions {
             for total in totals {

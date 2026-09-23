@@ -13,8 +13,8 @@ import Observation
 final class AppState {
     /// HAM metin — kaynağın doğrusu. Biçimlendirme Presentation'da.
     var balanceText: String = ""
-    /// Stopaj yüzdesi, ön dolu "15" (kullanıcı düzenler; oran koda gömülmez).
-    var withholdingText: String = "15"
+    /// Stopaj yüzdesi, ön dolu "17.5" (kullanıcı düzenler; oran koda gömülmez).
+    var withholdingText: String = "17.5"
     var nights: Int = 1
     var banks: [BankConditionDraft] = [.blankDefault]
     var selectedBankID: UUID?
@@ -137,7 +137,7 @@ final class AppState {
     static var preview: AppState {
         let state = AppState()
         state.balanceText = "100.000"
-        state.withholdingText = "15"
+        state.withholdingText = "17.5"
         state.nights = 1
         state.banks = [.sample]
         state.selectedBankID = state.banks.first?.id

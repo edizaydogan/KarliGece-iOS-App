@@ -15,7 +15,11 @@ final class AppState {
     var balanceText: String = ""
     /// Stopaj yüzdesi, ön dolu "17.5" (kullanıcı düzenler; oran koda gömülmez).
     var withholdingText: String = "17.5"
+    /// Vade uzunluğu = gece sayısı. DAİMA normalize (bitiş hafta sonuna düşmez).
     var nights: Int = 1
+    /// Vade başlangıcı. DAİMA bugüne düşer (kalıcı değildir; her açılışta bugün).
+    /// Valör/hafta günü kuralı bu tarihin gününden yürür.
+    var startDate: Date = AccrualCalendar.today()
     var banks: [BankConditionDraft] = [.blankDefault]
     var selectedBankID: UUID?
     /// Aktif sekme — ekranlar arası geçiş (ör. boş durumdan Tab 2'ye) için.
@@ -25,10 +29,12 @@ final class AppState {
         guard loadPersisted, !Self.isUITesting, let snapshot = SessionStore.load() else { return }
         balanceText = snapshot.balanceText
         withholdingText = snapshot.withholdingText
-        nights = snapshot.nights
         selectedBankID = snapshot.selectedBankID
         selectedTab = snapshot.selectedTab
         banks = snapshot.banks
+        // Başlangıç DAİMA bugün; kayıtlı gün sayısı bugünün gününe göre yeniden
+        // normalize edilir (bitiş hafta sonuna düşmesin).
+        nights = AccrualCalendar.normalizedNights(start: startDate, requested: snapshot.nights)
     }
 
     /// Tüm oturumu UserDefaults'a yazar. Uygulama arka plana geçince çağrılır.
@@ -57,7 +63,15 @@ final class AppState {
         return banks.first
     }
 
+    /// Vade bitiş tarihi = başlangıç + gün sayısı (gün sayısı normalize olduğu
+    /// için bitiş daima iş günüdür).
+    var endDate: Date {
+        AccrualCalendar.endDate(start: startDate, nights: nights)
+    }
+
     /// Canlı hesap sonucu. Bakiye ayrıştırılamıyorsa veya banka yoksa nil.
+    /// Özet artık valör kurallı BİLEŞİK sonuç gösterir: net kazanç ertesi gün
+    /// (hafta sonu Pazartesi) valörüyle bakiyeye eklenip sonraki geceyi büyütür.
     var result: InterestResult? {
         guard let balance = DecimalInputParser.parse(balanceText),
               let draft = selectedBank else {
@@ -65,13 +79,12 @@ final class AppState {
         }
         let withholding: WithholdingRule = DecimalInputParser.parse(withholdingText)
             .map { .single(.percent($0)) } ?? .none
-        return InterestEngine.calculate(
-            InterestInput(
-                totalBalance: balance,
-                nights: nights,
-                condition: draft.makeCondition(),
-                withholding: withholding
-            )
+        return CompoundingEngine.project(
+            initialBalance: balance,
+            startWeekday: AccrualCalendar.weekday(for: startDate),
+            nights: nights,
+            condition: draft.makeCondition(),
+            withholding: withholding
         )
     }
 
@@ -108,6 +121,28 @@ final class AppState {
             if bound == nil || balance < bound! { return tier.id }
         }
         return sorted.last?.id
+    }
+
+    // MARK: - Vade mutasyonları (takvim ↔ gün sayısı, hep normalize)
+
+    /// Kullanıcı gün sayısını doğrudan girdi (ör. 10). Bitiş hafta sonuna
+    /// düşerse Pazartesi'ye çekilir; gün sayısı gerçek aralığa göre güncellenir.
+    func setDayCount(_ requested: Int) {
+        nights = AccrualCalendar.normalizedNights(start: startDate, requested: requested)
+    }
+
+    /// Kullanıcı takvimden bir bitiş günü seçti. Hafta sonuysa Pazartesi'ye
+    /// çekilir; gün sayısı buna göre türetilir.
+    func setEndDate(_ date: Date) {
+        let snapped = AccrualCalendar.snappedOffWeekend(date)
+        nights = max(1, AccrualCalendar.nights(from: startDate, to: snapped))
+    }
+
+    /// Kullanıcı başlangıç gününü değiştirdi. Gün sayısı korunur ama yeni
+    /// başlangıca göre yeniden normalize edilir.
+    func setStartDate(_ date: Date) {
+        startDate = AccrualCalendar.startOfDay(date)
+        nights = AccrualCalendar.normalizedNights(start: startDate, requested: nights)
     }
 
     // MARK: - Mutasyonlar

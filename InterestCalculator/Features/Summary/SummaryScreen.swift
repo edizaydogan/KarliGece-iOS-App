@@ -88,7 +88,12 @@ struct SummaryScreen: View {
                     .focused($dayCountFocused)
                     .accessibilityIdentifier("dayCountField")
                 Text("gece").foregroundStyle(.slate)
-                Stepper("Gün sayısını değiştir", value: dayCountBinding, in: 1...365)
+                // Yön-farkında: "+" hafta sonunu ileri (Cuma→Pzt), "−" geri
+                // (Pzt→Cuma) atlar. Değer bağlaması tek yönlü ileri snap'te
+                // takıldığı için onIncrement/onDecrement kullanılır.
+                Stepper("Gün sayısını değiştir",
+                        onIncrement: { state.incrementDayCount() },
+                        onDecrement: { state.decrementDayCount() })
                     .labelsHidden()
             }
             .font(.subheadline)

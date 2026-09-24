@@ -131,6 +131,20 @@ final class AppState {
         nights = AccrualCalendar.normalizedNights(start: startDate, requested: requested)
     }
 
+    /// Adım "+": bitişi bir sonraki iş gününe taşır (hafta sonunu ileri atlar,
+    /// Cuma → Pazartesi).
+    func incrementDayCount() {
+        nights = AccrualCalendar.nextBusinessNights(start: startDate, after: nights)
+    }
+
+    /// Adım "−": bitişi bir önceki iş gününe taşır (hafta sonunu GERİ atlar,
+    /// Pazartesi → Cuma). Daha küçük geçerli vade yoksa değişmez.
+    func decrementDayCount() {
+        if let previous = AccrualCalendar.previousBusinessNights(start: startDate, before: nights) {
+            nights = previous
+        }
+    }
+
     /// Kullanıcı takvimden bir bitiş günü seçti. Hafta sonuysa Pazartesi'ye
     /// çekilir; gün sayısı buna göre türetilir.
     func setEndDate(_ date: Date) {

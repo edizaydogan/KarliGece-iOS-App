@@ -68,4 +68,24 @@ struct AccrualCalendarTests {
         let snappedEnd = AccrualCalendar.endDate(start: day(2026, 1, 9), nights: 1)
         #expect(AccrualCalendar.weekday(for: snappedEnd) == .monday)
     }
+
+    @Test("Stepper · + ileri, − geri; hafta sonunu simetrik atlar")
+    func stepperDirection() {
+        // Çarşamba 07 başlangıç: geçerli geceler 1(Per),2(Cum),5(Pzt),6(Sal)…
+        let wed = day(2026, 1, 7)
+        // "+" Cuma(2) → Pazartesi(5), hafta içi Sat/Sun atlanır.
+        #expect(AccrualCalendar.nextBusinessNights(start: wed, after: 2) == 5)
+        // "−" Pazartesi(5) → Cuma(2) — DÜZELTİLEN HATA (eskiden 5'te takılıyordu).
+        #expect(AccrualCalendar.previousBusinessNights(start: wed, before: 5) == 2)
+        // Ardışık hafta içi adımlar birebir.
+        #expect(AccrualCalendar.nextBusinessNights(start: wed, after: 5) == 6)
+        #expect(AccrualCalendar.previousBusinessNights(start: wed, before: 6) == 5)
+        // En küçük geçerli vadenin altına inilemez.
+        #expect(AccrualCalendar.previousBusinessNights(start: wed, before: 1) == nil)
+
+        // Cuma 09 başlangıç: en küçük geçerli vade 3 (Pzt); altına inilemez.
+        let fri = day(2026, 1, 9)
+        #expect(AccrualCalendar.previousBusinessNights(start: fri, before: 3) == nil)
+        #expect(AccrualCalendar.nextBusinessNights(start: fri, after: 3) == 4)   // Salı
+    }
 }

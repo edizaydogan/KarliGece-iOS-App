@@ -15,16 +15,18 @@ struct SummaryScreen: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
     @ScaledMetric(relativeTo: .largeTitle) private var heroSize: CGFloat = 44
+    @FocusState private var dayCountFocused: Bool
 
     private let disclaimerText = "Bu bir tahmindir; bankanızın fiilî tahakkuku kuruş farkı gösterebilir. Yatırım tavsiyesi değildir."
     private let cutoffNote = "Bankaların son işlem saati (cut-off) vardır; saat sınırından sonraki transferler ertesi iş günü valörüyle işleyebilir."
+    private let valorNote = "Hafta içi kazanç ertesi gün 00:00, hafta sonu (Cuma–Pazar) Pazartesi 00:00 valörüyle bakiyeye eklenip bileşiklenir. Bitiş hafta sonuna denk gelirse ilk iş gününe (Pazartesi) alınır."
 
     var body: some View {
         @Bindable var state = state
 
         ScrollView {
             VStack(spacing: 16) {
-                nightsSelector(state)
+                horizonSelector(state)
 
                 if let result = state.result {
                     heroCard(result)
@@ -49,50 +51,74 @@ struct SummaryScreen: View {
         .accessibilityIdentifier("summaryRoot")
     }
 
-    // MARK: - Gece seçici
+    // MARK: - Vade seçici (takvim + gün sayısı)
 
-    private enum NightsMode: Hashable { case one, three, custom }
-
-    private func nightsSelector(_ state: AppState) -> some View {
-        let mode = Binding<NightsMode>(
-            get: {
-                if state.nights == 1 { return .one }
-                if state.nights == 3 { return .three }
-                return .custom
-            },
-            set: { newValue in
-                switch newValue {
-                case .one: state.nights = 1
-                case .three: state.nights = 3
-                case .custom: if state.nights == 1 || state.nights == 3 { state.nights = 7 }
-                }
-            }
+    private func horizonSelector(_ state: AppState) -> some View {
+        let startBinding = Binding<Date>(
+            get: { state.startDate },
+            set: { state.setStartDate($0) }
         )
-        return VStack(alignment: .leading, spacing: 8) {
-            Picker("Gece sayısı", selection: mode) {
-                Text("1 gece").tag(NightsMode.one)
-                Text("3 gece").tag(NightsMode.three)
-                Text("Özel").tag(NightsMode.custom)
-            }
-            .pickerStyle(.segmented)
+        let endBinding = Binding<Date>(
+            get: { state.endDate },
+            set: { state.setEndDate($0) }
+        )
+        let dayCountBinding = Binding<Int>(
+            get: { state.nights },
+            set: { state.setDayCount($0) }
+        )
+        let minEnd = AccrualCalendar.addNights(1, to: state.startDate)
 
-            if mode.wrappedValue == .custom {
-                Stepper("\(state.nights) gece", value: Binding(get: { state.nights },
-                                                               set: { state.nights = $0 }),
-                        in: 0...365)
-                .font(.subheadline)
-                .foregroundStyle(.ink)
-            }
+        return VStack(alignment: .leading, spacing: 12) {
+            DatePicker("Başlangıç", selection: startBinding, displayedComponents: .date)
+                .accessibilityIdentifier("startDateField")
+            DatePicker("Bitiş", selection: endBinding, in: minEnd..., displayedComponents: .date)
+                .accessibilityIdentifier("endDateField")
 
+            Rectangle().fill(Color.rime).frame(height: 1 / displayScale)
+
+            HStack(spacing: 12) {
+                Text("Gün sayısı").foregroundStyle(.ink)
+                Spacer()
+                TextField("1", value: dayCountBinding, format: .number)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .monospacedDigit()
+                    .foregroundStyle(.ink)
+                    .frame(width: 56)
+                    .focused($dayCountFocused)
+                    .accessibilityIdentifier("dayCountField")
+                Text("gece").foregroundStyle(.slate)
+                Stepper("Gün sayısını değiştir", value: dayCountBinding, in: 1...365)
+                    .labelsHidden()
+            }
+            .font(.subheadline)
+
+            Text(valorNote)
+                .font(.caption)
+                .foregroundStyle(.slate)
             Text(cutoffNote)
                 .font(.caption)
                 .foregroundStyle(.slate)
         }
+        .tint(.glacier)
         .padding(16)
         .cardSurface()
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                if dayCountFocused {
+                    Spacer()
+                    Button("Bitti") { dayCountFocused = false }
+                }
+            }
+        }
     }
 
     // MARK: - Hero
+
+    /// Vade uzunluğuna göre başlık ("1 gecelik net kazanç" / "10 gecelik net kazanç").
+    private var horizonLabel: String {
+        "\(state.nights) gecelik net kazanç"
+    }
 
     private func heroDisplay(_ result: InterestResult) -> (value: Money, color: Color, message: String?) {
         if result.netInterest > 0 {
@@ -107,7 +133,7 @@ struct SummaryScreen: View {
         }
         if result.totalBalance > 0, state.nights > 0,
            result.totalGrossInterest == 0, !diagnostics.contains(.zeroRate) {
-            return (0, .slate, "Bu tutarda gecelik kazanç kuruşun altında kalıyor")
+            return (0, .slate, "Bu tutarda kazanç kuruşun altında kalıyor")
         }
         return (0, .slate, nil)
     }
@@ -115,7 +141,7 @@ struct SummaryScreen: View {
     private func heroCard(_ result: InterestResult) -> some View {
         let display = heroDisplay(result)
         let shape = RoundedRectangle(cornerRadius: 24, style: .continuous)
-        let accessibility = "Net gecelik kazanç, \(display.value.formatted(.currency(code: "TRY")))"
+        let accessibility = "\(horizonLabel), \(display.value.formatted(.currency(code: "TRY")))"
 
         return ZStack {
             shape.fill(Color.drift)
@@ -156,7 +182,7 @@ struct SummaryScreen: View {
 
         VStack(spacing: 6) {
             number
-            Text("Net gecelik kazanç")
+            Text(horizonLabel)
                 .font(.subheadline)
                 .foregroundStyle(.slate)
             if let message = display.message {
@@ -270,7 +296,8 @@ struct SummaryScreen: View {
             moneyRow("Brüt faiz", result.totalGrossInterest)
             deductionRow("Stopaj (\(withholdingLabel))", result.totalDeductions)
             hairline
-            moneyRow("Net gecelik kazanç", result.netInterest, emphasized: true)
+            moneyRow("Net kazanç (\(state.nights) gece)", result.netInterest, emphasized: true)
+            moneyRow("Vade sonu bakiyeniz", result.totalBalance + result.netInterest)
         }
         .padding(16)
         .cardSurface()
@@ -371,7 +398,7 @@ struct SummaryScreen: View {
         let net = result.netInterest.formatted(.currency(code: "TRY"))
         let rate = announcedRatePercent.map { "%\($0.grouped(fractionDigits: 0...2))" } ?? "girilen oran"
         let nights = state.nights
-        return "Faize giren \(bearing) üzerinden \(rate) yıllık oranla \(nights) gecelik brüt faiz \(gross) hesaplandı; ardından \(withholdingLabel) stopaj düşülerek net \(net) bulundu."
+        return "Faize giren \(bearing) üzerinden \(rate) yıllık oranla \(nights) gece boyunca hesaplandı. Hafta içi kazanç ertesi gün 00:00 valörüyle bakiyeye eklenip bileşiklenir; Cuma–Pazar kazancı Pazartesi 00:00 valörüyle toplu işlenir. Toplam brüt \(gross), \(withholdingLabel) stopaj sonrası net \(net)."
     }
 
     // MARK: - Boş durum + disclaimer

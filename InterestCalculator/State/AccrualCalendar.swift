@@ -69,12 +69,41 @@ enum AccrualCalendar {
         snappedOffWeekend(addNights(max(1, nights), to: start))
     }
 
-    /// İstenen gün sayısını normalize eder: bitişi hesapla, hafta sonundan kaçır,
-    /// gerçek (normalize) gün sayısını döndür. Sonuç [1, 365] aralığındadır.
+    /// İstenen gün sayısını normalize eder: bitişi hesapla, hafta sonundan İLERİ
+    /// (Pazartesi'ye) kaçır, gerçek gün sayısını döndür. Sonuç [1, 365].
+    /// Doğrudan gün-sayısı girişi ve takvimden bitiş seçimi bunu kullanır.
     static func normalizedNights(start: Date, requested: Int) -> Int {
         let clamped = max(1, min(requested, 365))
         let rawEnd = addNights(clamped, to: start)
         let snapped = snappedOffWeekend(rawEnd)
         return max(1, nights(from: start, to: snapped))
+    }
+
+    /// `start + nights` bir iş gününe denk geliyorsa geçerli vade (nights >= 1).
+    static func endsOnBusinessDay(start: Date, nights: Int) -> Bool {
+        nights >= 1 && weekday(for: addNights(nights, to: start)).isBusinessDay
+    }
+
+    /// `current`'tan BÜYÜK, bitişi iş gününe denk gelen en küçük gün sayısı.
+    /// Adım "+"'sı bunu kullanır — hafta sonunu ileri (Cuma→Pazartesi) atlar.
+    static func nextBusinessNights(start: Date, after current: Int) -> Int {
+        var n = min(max(current, 0), 365) + 1
+        while n <= 365 {
+            if endsOnBusinessDay(start: start, nights: n) { return n }
+            n += 1
+        }
+        return current   // 365 içinde bulunamazsa (olası değil) mevcut kalır
+    }
+
+    /// `current`'tan KÜÇÜK, bitişi iş gününe denk gelen en büyük gün sayısı;
+    /// yoksa nil (zaten en küçük geçerli vade). Adım "−"'si bunu kullanır —
+    /// hafta sonunu geri (Pazartesi→Cuma) atlar.
+    static func previousBusinessNights(start: Date, before current: Int) -> Int? {
+        var n = current - 1
+        while n >= 1 {
+            if endsOnBusinessDay(start: start, nights: n) { return n }
+            n -= 1
+        }
+        return nil
     }
 }

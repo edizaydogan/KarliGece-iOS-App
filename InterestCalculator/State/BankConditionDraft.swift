@@ -74,6 +74,16 @@ struct BankConditionDraft: Identifiable, Hashable {
                            idleKind: .percentage, idlePercentageText: "10")
     }
 
+    /// Önizleme/örnek: %45 brüt, vadesiz şartsız (Karşılaştır).
+    static var sampleFlat: BankConditionDraft {
+        BankConditionDraft(name: "Şartsız Banka", annualRateText: "45")
+    }
+
+    /// Önizleme/örnek: %40 NET ilan (Karşılaştır).
+    static var sampleNet: BankConditionDraft {
+        BankConditionDraft(name: "Net Banka", annualRateText: "40", rateBasis: .net)
+    }
+
     /// Taslağı motor tipine çevirir. Ham metinler locale-agnostik ayrıştırılır;
     /// geçersiz/boş sayısal alanlar güvenli varsayılana düşer (motor zaten toplam
     /// fonksiyon olduğu için tanılamayı kendisi üretir).

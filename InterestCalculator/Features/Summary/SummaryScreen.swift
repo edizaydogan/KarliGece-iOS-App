@@ -17,7 +17,6 @@ struct SummaryScreen: View {
     @ScaledMetric(relativeTo: .largeTitle) private var heroSize: CGFloat = 44
     @FocusState private var dayCountFocused: Bool
 
-    private let disclaimerText = "Bu bir tahmindir; bankanızın fiilî tahakkuku kuruş farkı gösterebilir. Yatırım tavsiyesi değildir."
     private let cutoffNote = "Bankaların son işlem saati (cut-off) vardır; saat sınırından sonraki transferler ertesi iş günü valörüyle işleyebilir."
     private let valorNote = "Hafta içi kazanç ertesi gün 00:00, hafta sonu (Cuma–Pazar) Pazartesi 00:00 valörüyle bakiyeye eklenip bileşiklenir. Bitiş hafta sonuna denk gelirse ilk iş gününe (Pazartesi) alınır."
 
@@ -129,18 +128,7 @@ struct SummaryScreen: View {
         if result.netInterest > 0 {
             return (result.netInterest, .aurora, nil)
         }
-        let diagnostics = result.diagnostics
-        if diagnostics.contains(.belowMinimumBalance) {
-            return (0, .slate, "Bu ürün daha yüksek bir bakiye gerektiriyor")
-        }
-        if diagnostics.contains(.requirementConsumesEntireBalance) {
-            return (0, .slate, "Vadesiz şartı toplam bakiyenin tamamını kapsıyor")
-        }
-        if result.totalBalance > 0, state.nights > 0,
-           result.totalGrossInterest == 0, !diagnostics.contains(.zeroRate) {
-            return (0, .slate, "Bu tutarda kazanç kuruşun altında kalıyor")
-        }
-        return (0, .slate, nil)
+        return (0, .slate, ResultMessages.zeroEarningsReason(for: result, nights: state.nights)?.text)
     }
 
     private func heroCard(_ result: InterestResult) -> some View {
@@ -205,18 +193,13 @@ struct SummaryScreen: View {
 
     @ViewBuilder
     private func notes(_ result: InterestResult) -> some View {
-        let messages: [(String, Color)] = result.diagnostics.compactMap { diagnostic in
-            switch diagnostic {
-            case .idlePercentageAboveOneHundred: return ("Vadesiz yüzdesi %100'e sınırlandı.", .ember)
-            case .deductionRatesExceedTotal: return ("Kesinti oranları toplamı %100'ü aşıyor.", .ember)
-            case .unusuallyHighRate: return ("Girdiğiniz oran çok yüksek — günlük oran girmiş olabilir misiniz?", .slate)
-            default: return nil
-            }
-        }
+        let messages = ResultMessages.warnings(for: result.diagnostics)
         if !messages.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(messages.enumerated()), id: \.offset) { _, item in
-                    Text(item.0).font(.footnote).foregroundStyle(item.1)
+                    Text(item.text)
+                        .font(.footnote)
+                        .foregroundStyle(item.tone == .error ? Color.ember : Color.slate)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -433,7 +416,7 @@ struct SummaryScreen: View {
     }
 
     private var disclaimer: some View {
-        Text(disclaimerText)
+        Text(ResultMessages.disclaimer)
             .font(.footnote)
             .foregroundStyle(.slate)
             .multilineTextAlignment(.center)

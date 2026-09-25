@@ -69,23 +69,42 @@ final class AppState {
         AccrualCalendar.endDate(start: startDate, nights: nights)
     }
 
+    /// Ayrıştırılmış toplam tutar; metin geçersizse nil. Özet ve Karşılaştır
+    /// aynı ayrıştırmayı kullanır.
+    var parsedBalance: Money? {
+        DecimalInputParser.parse(balanceText)
+    }
+
+    /// Stopaj kuralı; metin ayrıştırılamıyorsa stopajsız.
+    var withholdingRule: WithholdingRule {
+        DecimalInputParser.parse(withholdingText).map { .single(.percent($0)) } ?? .none
+    }
+
     /// Canlı hesap sonucu. Bakiye ayrıştırılamıyorsa veya banka yoksa nil.
     /// Özet artık valör kurallı BİLEŞİK sonuç gösterir: net kazanç ertesi gün
     /// (hafta sonu Pazartesi) valörüyle bakiyeye eklenip sonraki geceyi büyütür.
     var result: InterestResult? {
-        guard let balance = DecimalInputParser.parse(balanceText),
+        guard let balance = parsedBalance,
               let draft = selectedBank else {
             return nil
         }
-        let withholding: WithholdingRule = DecimalInputParser.parse(withholdingText)
-            .map { .single(.percent($0)) } ?? .none
         return CompoundingEngine.project(
             initialBalance: balance,
             startWeekday: AccrualCalendar.weekday(for: startDate),
             nights: nights,
             condition: draft.makeCondition(),
-            withholding: withholding
+            withholding: withholdingRule
         )
+    }
+
+    /// Bankanın gösterim adı. Adsızsa listedeki sırasıyla "Adsız banka N" —
+    /// Karşılaştır menüsünde birden çok adsız banka ayırt edilebilsin.
+    func displayName(for bank: BankConditionDraft) -> String {
+        if !bank.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return bank.name
+        }
+        let position = (banks.firstIndex { $0.id == bank.id } ?? 0) + 1
+        return "Adsız banka \(position)"
     }
 
     /// Sonucu bloklayan (.error) tanılamalar.
@@ -214,7 +233,9 @@ final class AppState {
         state.balanceText = "100.000"
         state.withholdingText = "17.5"
         state.nights = 1
-        state.banks = [.sample]
+        // İlk (ve seçili) banka `.sample` — Özet önizlemesi değişmez; diğer ikisi
+        // Karşılaştır'ın üç sütununu doldurur.
+        state.banks = [.sample, .sampleFlat, .sampleNet]
         state.selectedBankID = state.banks.first?.id
         return state
     }

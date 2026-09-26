@@ -69,8 +69,9 @@ final class AppState {
         AccrualCalendar.endDate(start: startDate, nights: nights)
     }
 
-    /// Ayrıştırılmış toplam tutar; metin geçersizse nil. Özet ve Karşılaştır
-    /// aynı ayrıştırmayı kullanır.
+    /// Ayrıştırılmış toplam tutar (Düzenle'deki); metin geçersizse nil. Karşılaştır
+    /// bunu kullanmaz: kendi yerel tutarı vardır, `balanceText`'i yalnız tohum
+    /// olarak okur ve hiç yazmaz.
     var parsedBalance: Money? {
         DecimalInputParser.parse(balanceText)
     }

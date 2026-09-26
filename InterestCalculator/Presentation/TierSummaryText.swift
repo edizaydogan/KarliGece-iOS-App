@@ -17,7 +17,9 @@ enum TierSummaryText {
         .joined(separator: " / ")
     }
 
-    private static func rangeText(lower: Money?, upper: Money?) -> String {
+    /// Bir kademenin aralığı: "50.000 ₺'nin altı", "25.000 – 50.000 ₺ arası",
+    /// "50.000 ₺ ve üzeri". Max detayı da kullanır.
+    static func rangeText(lower: Money?, upper: Money?) -> String {
         switch (lower, upper) {
         case (nil, let upper?):        return "\(money(upper)) ₺'nin altı"
         case (let lower?, let upper?): return "\(money(lower)) – \(money(upper)) ₺ arası"

@@ -15,4 +15,6 @@ enum EditorField: Hashable {
     case idleFixed
     case tierUpperBound(UUID)
     case tierAmount(UUID)
+    /// Max'ın gün sayısı alanı.
+    case planDays
 }

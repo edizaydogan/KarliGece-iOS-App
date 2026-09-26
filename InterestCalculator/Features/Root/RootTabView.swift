@@ -21,6 +21,9 @@ struct RootTabView: View {
             Tab("Karşılaştır", systemImage: "chart.line.uptrend.xyaxis", value: AppTab.compare) {
                 CompareScreen()
             }
+            Tab("Max", systemImage: "gauge.with.dots.needle.100percent", value: AppTab.max) {
+                MaxScreen()
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             // Uygulama etkin olmaktan çıkınca (arka plan/inaktif) tüm oturumu kaydet.

@@ -16,6 +16,8 @@ struct SessionSnapshot: Codable {
     var selectedBankID: UUID?
     var selectedTab: AppTab
     var banks: [BankConditionDraft]
+    /// Max geçmişi. Opsiyonel: bu alandan önce kaydedilmiş oturumlar da çözülsün.
+    var maxHistory: [MaxPlanRecord]?
 }
 
 enum SessionStore {

@@ -24,6 +24,11 @@ final class AppState {
     var selectedBankID: UUID?
     /// Aktif sekme — ekranlar arası geçiş (ör. boş durumdan Tab 2'ye) için.
     var selectedTab: AppTab = .summary
+    /// Max geçmişi, en yeni başta; en fazla `maxHistoryLimit` kayıt. Oturumla
+    /// birlikte kaydedilir.
+    var maxHistory: [MaxPlanRecord] = []
+
+    static let maxHistoryLimit = 50
 
     init(loadPersisted: Bool = true) {
         guard loadPersisted, !Self.isUITesting, let snapshot = SessionStore.load() else { return }
@@ -32,6 +37,7 @@ final class AppState {
         selectedBankID = snapshot.selectedBankID
         selectedTab = snapshot.selectedTab
         banks = snapshot.banks
+        maxHistory = snapshot.maxHistory ?? []
         // Başlangıç DAİMA bugün; kayıtlı gün sayısı bugünün gününe göre yeniden
         // normalize edilir (bitiş hafta sonuna düşmesin).
         nights = AccrualCalendar.normalizedNights(start: startDate, requested: snapshot.nights)
@@ -46,7 +52,8 @@ final class AppState {
             nights: nights,
             selectedBankID: selectedBankID,
             selectedTab: selectedTab,
-            banks: banks
+            banks: banks,
+            maxHistory: maxHistory
         ))
     }
 
@@ -70,8 +77,8 @@ final class AppState {
     }
 
     /// Ayrıştırılmış toplam tutar (Düzenle'deki); metin geçersizse nil. Karşılaştır
-    /// bunu kullanmaz: kendi yerel tutarı vardır, `balanceText`'i yalnız tohum
-    /// olarak okur ve hiç yazmaz.
+    /// ve Max bunu kullanmaz: kendi yerel tutarları vardır, `balanceText`'i yalnız
+    /// tohum olarak okur ve hiç yazmaz.
     var parsedBalance: Money? {
         DecimalInputParser.parse(balanceText)
     }
@@ -106,6 +113,16 @@ final class AppState {
         }
         let position = (banks.firstIndex { $0.id == bank.id } ?? 0) + 1
         return "Adsız banka \(position)"
+    }
+
+    /// Max planlayıcının girdisi: kayıtlı bankaların motor koşulları, adları
+    /// gösterim adıyla ("Adsız banka N") — plan ve geçmiş bu adları taşır.
+    var planningConditions: [BankCondition] {
+        banks.map { draft in
+            var condition = draft.makeCondition()
+            condition.name = displayName(for: draft)
+            return condition
+        }
     }
 
     /// Sonucu bloklayan (.error) tanılamalar.
@@ -225,6 +242,15 @@ final class AppState {
         guard banks.indices.contains(index) else { return }
         for tierIndex in offsets.sorted(by: >) where banks[index].tierDrafts.indices.contains(tierIndex) {
             banks[index].tierDrafts.remove(at: tierIndex)
+        }
+    }
+
+    /// Yeni Max planını geçmişin başına ekler; sınırı aşan en eski kayıtlar düşer.
+    /// Kalıcılık oturumun geri kalanıyla aynı: uygulama etkin olmaktan çıkınca.
+    func recordMaxPlan(_ record: MaxPlanRecord) {
+        maxHistory.insert(record, at: 0)
+        if maxHistory.count > Self.maxHistoryLimit {
+            maxHistory.removeLast(maxHistory.count - Self.maxHistoryLimit)
         }
     }
 

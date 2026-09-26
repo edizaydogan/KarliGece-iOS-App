@@ -107,4 +107,48 @@ final class InterestCalculatorUITests: XCTestCase {
         XCTAssertTrue(element(app, "compareNet_365_1").exists)
         XCTAssertFalse(element(app, "compareEmptyState").exists)
     }
+
+    /// Karşılaştır'ın tutarı Düzenle'den tohumlanır ama yereldir: değiştirmek
+    /// Düzenle'yi değiştirmez. Değerler biçimle değil, birbirleriyle karşılaştırılır.
+    @MainActor
+    func testCompareBalanceDoesNotChangeEditor() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitesting"]   // kalıcılığı atla: tek boş bankayla başlar
+        app.launch()
+
+        // Düzenle'de tutar, sonra ikinci banka (Karşılaştır sütunları için).
+        app.tabBars.buttons["Düzenle"].tap()
+        let editorBalance = app.textFields["balanceField"]
+        XCTAssertTrue(editorBalance.waitForExistence(timeout: 5))
+        editorBalance.tap()
+        editorBalance.typeText("100000")
+        app.buttons["Bitti"].firstMatch.tap()
+        app.buttons["Banka ekle"].tap()
+        let editorValue = try XCTUnwrap(editorBalance.value as? String)
+
+        // Karşılaştır: tutar Düzenle'den tohumlandı.
+        app.tabBars.buttons["Karşılaştır"].tap()
+        let compareBalance = app.textFields["compareBalanceField"]
+        XCTAssertTrue(compareBalance.waitForExistence(timeout: 5))
+        XCTAssertEqual(compareBalance.value as? String, editorValue)
+
+        // Karşılaştır'da tutarı silip yenisini yaz. Metin sağa yaslı: ortaya dokunmak
+        // imleci başa koyar, silme işe yaramaz — imleç sona düşsün diye sağ uca dokun.
+        compareBalance.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap()
+        compareBalance.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: editorValue.count))
+        compareBalance.typeText("5000")
+        app.buttons["Bitti"].firstMatch.tap()
+        let compareValue = try XCTUnwrap(compareBalance.value as? String)
+        XCTAssertNotEqual(compareValue, editorValue)
+
+        // Düzenle'deki tutar değişmedi.
+        app.tabBars.buttons["Düzenle"].tap()
+        XCTAssertTrue(editorBalance.waitForExistence(timeout: 5))
+        XCTAssertEqual(editorBalance.value as? String, editorValue)
+
+        // Karşılaştır'a dönünce yeniden tohumlanmaz: yerel tutar korunur.
+        app.tabBars.buttons["Karşılaştır"].tap()
+        XCTAssertTrue(compareBalance.waitForExistence(timeout: 5))
+        XCTAssertEqual(compareBalance.value as? String, compareValue)
+    }
 }

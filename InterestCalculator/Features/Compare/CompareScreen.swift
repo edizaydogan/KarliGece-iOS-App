@@ -10,7 +10,10 @@
 //    bankasıyla BİR KEZ tohumlanır, sonra iki yönde de Özet'ten bağımsızdır.
 //    Kalıcı değildir (her açılışta yeniden tohumlanır).
 //  • Vade Özet'ten GELMEZ: sabit vadeler bugünden başlar, hafta sonu snap'i yok.
-//  • Tutar alanı Düzenle'deki "Toplam tutar"la ortaktır (`state.balanceText`).
+//  • Tutar da bu ekranın KENDİ @State'idir: alan ilk göründüğünde Düzenle'deki
+//    "Toplam tutar"la (`state.balanceText`) BİR KEZ tohumlanır, sonra iki yönde
+//    de bağımsızdır — burada değiştirmek Düzenle'yi (dolayısıyla Özet'i)
+//    etkilemez. Kalıcı değildir.
 //  • Tablo body başında BİR KEZ hesaplanır; hücreler hesap yapmaz.
 //  Zemin düz snowfield — gece gradyanı yalnız Özet'in.
 //
@@ -24,20 +27,33 @@ struct CompareScreen: View {
     @FocusState private var focused: EditorField?
     /// Karşılaştır'ın kendi banka seçimi. nil = henüz tohumlanmadı.
     @State private var selection: CompareSelection?
+    /// Karşılaştır'ın kendi tutarı (ham metin). nil = henüz tohumlanmadı; o ana
+    /// kadar Düzenle'deki tutar okunur ama hiçbir zaman YAZILMAZ.
+    @State private var balanceText: String?
 
     private let valorNote = "Kazançlar bugünden başlar. Hafta içi kazanç ertesi gün, hafta sonu (Cuma–Pazar) kazancı Pazartesi valörüyle bakiyeye eklenip bileşiklenir."
 
     var body: some View {
-        @Bindable var state = state
         let current = selection ?? CompareSelection(seed: state.selectedBank?.id)
-        let table = CompareTable(state: state, selection: current)
+        let balance = balanceBinding
+        let table = CompareTable(state: state, selection: current,
+                                 balance: DecimalInputParser.parse(balance.wrappedValue))
 
         ZStack {
             Color.snowfield.ignoresSafeArea()
             if table.columns.isEmpty {
                 emptyState
             } else {
-                content(table, current: current, balance: $state.balanceText)
+                content(table, current: current, balance: balance)
+                    .onAppear {
+                        // Tutar, alan İLK göründüğünde Düzenle'den bir kez alınır.
+                        // Boş durumda (tek banka) ya da Düzenle'deki tutar boşken
+                        // tohumlanmaz: önce buraya bakıp sonra Düzenle'de tutar
+                        // giren kullanıcı boş tutara kilitlenmesin.
+                        if balanceText == nil, !state.balanceText.isEmpty {
+                            balanceText = state.balanceText
+                        }
+                    }
             }
         }
         .onAppear {
@@ -105,6 +121,14 @@ struct CompareScreen: View {
 
     // MARK: - Tutar + sütun sayısı
 
+    /// Tutar alanının bağlaması. Yalnız yerel `balanceText`'e yazar — Düzenle'ye YAZMAZ.
+    private var balanceBinding: Binding<String> {
+        Binding(
+            get: { balanceText ?? state.balanceText },
+            set: { balanceText = $0 }
+        )
+    }
+
     private func balanceCard(_ balance: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             LabeledContent {
@@ -113,7 +137,7 @@ struct CompareScreen: View {
             } label: {
                 Text("Toplam tutar").foregroundStyle(.ink)
             }
-            Text("Düzenle'deki tutarla ortaktır.")
+            Text("Düzenle'deki tutarla başlar; buradaki değişiklik Düzenle'yi etkilemez.")
                 .font(.caption)
                 .foregroundStyle(.slate)
         }
@@ -443,7 +467,7 @@ struct CompareScreen: View {
             }
             noteText("Oranlar: vadesiz şart, limit ve \(withholdingLabel) stopaj dahil, bileşiksiz yıllık oran (365 gün). Bileşiğin etkisi kazanç satırlarında görünür.", tone: .info)
             noteText(valorNote, tone: .info)
-            noteText("Buradaki banka seçimleri Özet'i etkilemez.", tone: .info)
+            noteText("Buradaki tutar ve banka seçimleri Düzenle'yi ve Özet'i etkilemez.", tone: .info)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 4)
@@ -525,13 +549,14 @@ private struct CompareTable {
     /// Tüm bankalara ortak uyarılar (stopaj) — bir kez gösterilir.
     let sharedNotes: [ResultMessages.Warning]
 
-    init(state: AppState, selection: CompareSelection) {
+    /// `balance`: Karşılaştır'ın KENDİ tutarı (Düzenle'deki değil); nil → hücreler "—".
+    init(state: AppState, selection: CompareSelection, balance: Money?) {
         let ids = selection.resolvedIDs(in: state.banks.map(\.id))
         let columns = ids.compactMap { id in state.banks.first { $0.id == id } }
         self.columns = columns
         names = columns.map { state.displayName(for: $0) }
 
-        guard let balance = state.parsedBalance, !columns.isEmpty else {
+        guard let balance, !columns.isEmpty else {
             results = nil
             ranks = []
             notes = columns.map { _ in [] }

@@ -25,7 +25,7 @@ final class InterestCalculatorUITests: XCTestCase {
     }
 
     @MainActor
-    func testAllThreeTabsOpen() throws {
+    func testAllTabsOpen() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-uitesting"]   // kalıcılığı atla: her test temiz durumdan başlar
         app.launch()
@@ -38,6 +38,9 @@ final class InterestCalculatorUITests: XCTestCase {
 
         app.tabBars.buttons["Karşılaştır"].tap()
         XCTAssertTrue(element(app, "compareRoot").waitForExistence(timeout: 5))
+
+        app.tabBars.buttons["Max"].tap()
+        XCTAssertTrue(element(app, "maxRoot").waitForExistence(timeout: 5))
     }
 
     @MainActor
@@ -150,5 +153,89 @@ final class InterestCalculatorUITests: XCTestCase {
         app.tabBars.buttons["Karşılaştır"].tap()
         XCTAssertTrue(compareBalance.waitForExistence(timeout: 5))
         XCTAssertEqual(compareBalance.value as? String, compareValue)
+    }
+
+    /// Max'ın tutarı Düzenle'den tohumlanır ama yereldir (Karşılaştır ile aynı model).
+    @MainActor
+    func testMaxBalanceSeedsFromEditorButDoesNotWriteBack() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitesting"]   // kalıcılığı atla: tek boş bankayla başlar
+        app.launch()
+
+        app.tabBars.buttons["Düzenle"].tap()
+        let editorBalance = app.textFields["balanceField"]
+        XCTAssertTrue(editorBalance.waitForExistence(timeout: 5))
+        editorBalance.tap()
+        editorBalance.typeText("100000")
+        app.buttons["Bitti"].firstMatch.tap()
+        let editorValue = try XCTUnwrap(editorBalance.value as? String)
+
+        // Max: tutar Düzenle'den tohumlandı.
+        app.tabBars.buttons["Max"].tap()
+        let maxBalance = app.textFields["maxBalanceField"]
+        XCTAssertTrue(maxBalance.waitForExistence(timeout: 5))
+        XCTAssertEqual(maxBalance.value as? String, editorValue)
+
+        // Max'ta tutarı değiştir (imleç sona düşsün diye sağ uca dokunulur).
+        maxBalance.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap()
+        maxBalance.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: editorValue.count))
+        maxBalance.typeText("5000")
+        app.buttons["Bitti"].firstMatch.tap()
+        XCTAssertNotEqual(maxBalance.value as? String, editorValue)
+
+        // Düzenle'deki tutar değişmedi.
+        app.tabBars.buttons["Düzenle"].tap()
+        XCTAssertTrue(editorBalance.waitForExistence(timeout: 5))
+        XCTAssertEqual(editorBalance.value as? String, editorValue)
+    }
+
+    /// Gün girilip Maksimize Et'e basılınca detay açılır; geri dönünce geçmişte bir
+    /// satır vardır. Değerler assert EDİLMEZ (sayılar birim testlerinde).
+    @MainActor
+    func testMaxPlanOpensDetailAndAddsHistory() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitesting"]   // kalıcılığı atla: geçmiş boş başlar
+        app.launch()
+
+        // Düzenle'de tutar + oran.
+        app.tabBars.buttons["Düzenle"].tap()
+        let balance = app.textFields["balanceField"]
+        XCTAssertTrue(balance.waitForExistence(timeout: 5))
+        balance.tap()
+        balance.typeText("100000")
+        app.buttons["Bitti"].firstMatch.tap()
+        let rate = app.textFields["rateField"]
+        XCTAssertTrue(rate.waitForExistence(timeout: 5))
+        rate.tap()
+        rate.typeText("45")
+        app.buttons["Bitti"].firstMatch.tap()
+
+        // Max: geçmiş boş; gün girilmeden buton kapalı.
+        app.tabBars.buttons["Max"].tap()
+        XCTAssertTrue(element(app, "maxHistoryEmpty").waitForExistence(timeout: 5))
+        let maximize = app.buttons["maxMaximizeButton"]
+        XCTAssertTrue(maximize.exists)
+        XCTAssertFalse(maximize.isEnabled)
+
+        let days = app.textFields["maxDaysField"]
+        days.tap()
+        days.typeText("10")
+        app.buttons["Bitti"].firstMatch.tap()
+        XCTAssertTrue(maximize.isEnabled)
+        maximize.tap()
+
+        // Detay açıldı.
+        XCTAssertTrue(element(app, "maxDetailRoot").waitForExistence(timeout: 10))
+        XCTAssertTrue(element(app, "maxDetailTotalNet").exists)
+        XCTAssertTrue(element(app, "maxAllocation_0").exists)
+
+        // Geri: geçmişte tarihli satır var, boş durum yok.
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(element(app, "maxHistoryRow_0").waitForExistence(timeout: 5))
+        XCTAssertFalse(element(app, "maxHistoryEmpty").exists)
+
+        // Geçmiş satırı aynı detayı açar.
+        element(app, "maxHistoryRow_0").tap()
+        XCTAssertTrue(element(app, "maxDetailRoot").waitForExistence(timeout: 5))
     }
 }

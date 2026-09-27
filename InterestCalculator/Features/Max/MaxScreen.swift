@@ -12,7 +12,8 @@
 //    burada değiştirmek Düzenle'yi etkilemez. Gün sayısı da yereldir; ikisi de
 //    kalıcı değildir. Bankalar ve stopaj Düzenle'den gelir.
 //  • Plan bugünden başlar, hafta sonu snap'i yok (Karşılaştır gibi).
-//  • Geçmiş kalıcıdır (AppState.maxHistory), en yeni üstte.
+//  • Geçmiş kalıcıdır (AppState.maxHistory), en yeni üstte. Başlığın sağındaki
+//    "Temizle" onay alıp hepsini siler.
 //  • Düzen: tutar, gün ve buton sabit; geçmiş altında kendi ScrollView'unda
 //    kayar. Büyük erişilebilirlik boyutunda ve yatayda (alçak ekran) her şey tek
 //    ScrollView'dadır — sabit kısım ekranı doldurup listeyi yutmasın.
@@ -34,6 +35,8 @@ struct MaxScreen: View {
     @State private var isComputing = false
     /// Açık detay sayfaları (plan kayıtlarının id'leri).
     @State private var path: [UUID] = []
+    /// "Temizle" onayı açık mı.
+    @State private var confirmsClear = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -194,18 +197,43 @@ struct MaxScreen: View {
     // MARK: - Geçmiş
 
     private var historyHeader: some View {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text("Geçmiş")
                 .font(.headline)
                 .foregroundStyle(.ink)
                 .accessibilityAddTraits(.isHeader)
-            Spacer()
             if !state.maxHistory.isEmpty {
                 Text("\(state.maxHistory.count) hesap")
                     .font(.caption)
                     .foregroundStyle(.slate)
             }
+            Spacer()
+            if !state.maxHistory.isEmpty {
+                clearButton
+            }
         }
+    }
+
+    /// Geçmişi tümüyle siler. Geri alınamadığı (ve kalıcı olduğu) için önce onay ister.
+    private var clearButton: some View {
+        Button("Temizle") { confirmsClear = true }
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(.glacier)
+            .buttonStyle(.borderless)
+            .padding(.vertical, 6)
+            .contentShape(.rect)
+            .accessibilityHint("Geçmişteki tüm hesapları siler")
+            .accessibilityIdentifier("maxHistoryClearButton")
+            .confirmationDialog("Geçmiş temizlensin mi?", isPresented: $confirmsClear,
+                                titleVisibility: .visible) {
+                Button("Geçmişi Temizle", role: .destructive) {
+                    path = []
+                    state.clearMaxHistory()
+                }
+                Button("Vazgeç", role: .cancel) {}
+            } message: {
+                Text("Kayıtlı \(state.maxHistory.count) hesap silinir. Bu işlem geri alınamaz.")
+            }
     }
 
     @ViewBuilder

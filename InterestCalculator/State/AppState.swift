@@ -254,6 +254,11 @@ final class AppState {
         }
     }
 
+    /// Max geçmişini tümüyle siler (geri alınamaz; onayı ekran ister).
+    func clearMaxHistory() {
+        maxHistory.removeAll()
+    }
+
     /// Önizleme fixture'ı — her #Preview bununla sarılır, yoksa @Environment crash eder.
     static var preview: AppState {
         let state = AppState(loadPersisted: false)

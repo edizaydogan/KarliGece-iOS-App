@@ -87,6 +87,25 @@ struct MaxHistoryTests {
         #expect(!state.maxHistory.contains { $0.id == first.id })   // en eskiler düştü
     }
 
+    @Test("Temizle tüm geçmişi siler, oturumun geri kalanına dokunmaz")
+    func clearRemovesAllRecords() {
+        let state = AppState(loadPersisted: false)
+        state.balanceText = "152.000"
+        state.banks = [.sample]
+        let banks = state.banks
+        for _ in 0..<3 {
+            state.recordMaxPlan(record())
+        }
+        state.clearMaxHistory()
+        #expect(state.maxHistory.isEmpty)
+        #expect(state.balanceText == "152.000")
+        #expect(state.banks == banks)
+
+        // Temizlikten sonra yeni hesap yine geçmişe eklenir.
+        state.recordMaxPlan(record())
+        #expect(state.maxHistory.count == 1)
+    }
+
     @Test("Planlayıcı girdisi gösterim adlarını taşır; motor koşulu aynı")
     func planningConditions() {
         let state = AppState(loadPersisted: false)

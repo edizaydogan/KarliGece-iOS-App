@@ -238,4 +238,64 @@ final class InterestCalculatorUITests: XCTestCase {
         element(app, "maxHistoryRow_0").tap()
         XCTAssertTrue(element(app, "maxDetailRoot").waitForExistence(timeout: 5))
     }
+
+    /// Temizle önce onay ister: Vazgeç geçmişi korur, onay hepsini siler.
+    @MainActor
+    func testMaxHistoryClearAsksBeforeDeleting() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitesting"]   // kalıcılığı atla: geçmiş boş başlar
+        app.launch()
+
+        // Boş geçmişte Temizle görünmez.
+        app.tabBars.buttons["Max"].tap()
+        XCTAssertTrue(element(app, "maxHistoryEmpty").waitForExistence(timeout: 5))
+        let clear = app.buttons["maxHistoryClearButton"]
+        XCTAssertFalse(clear.exists)
+
+        makeMaxPlan(app)
+        XCTAssertTrue(element(app, "maxHistoryRow_0").waitForExistence(timeout: 5))
+        XCTAssertTrue(clear.exists)
+
+        // Vazgeç: geçmiş korunur.
+        clear.tap()
+        let cancel = app.buttons["Vazgeç"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+        cancel.tap()
+        XCTAssertTrue(element(app, "maxHistoryRow_0").exists)
+
+        // Onay: geçmiş boşalır, Temizle kaybolur.
+        clear.tap()
+        let confirm = app.buttons["Geçmişi Temizle"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        confirm.tap()
+        XCTAssertTrue(element(app, "maxHistoryEmpty").waitForExistence(timeout: 5))
+        XCTAssertFalse(element(app, "maxHistoryRow_0").exists)
+        XCTAssertFalse(clear.exists)
+    }
+
+    /// Düzenle'de tutar + oran girer, Max'ta 10 günlük plan hesaplar, detaydan geri döner.
+    @MainActor
+    private func makeMaxPlan(_ app: XCUIApplication) {
+        app.tabBars.buttons["Düzenle"].tap()
+        let balance = app.textFields["balanceField"]
+        XCTAssertTrue(balance.waitForExistence(timeout: 5))
+        balance.tap()
+        balance.typeText("100000")
+        app.buttons["Bitti"].firstMatch.tap()
+        let rate = app.textFields["rateField"]
+        XCTAssertTrue(rate.waitForExistence(timeout: 5))
+        rate.tap()
+        rate.typeText("45")
+        app.buttons["Bitti"].firstMatch.tap()
+
+        app.tabBars.buttons["Max"].tap()
+        let days = app.textFields["maxDaysField"]
+        XCTAssertTrue(days.waitForExistence(timeout: 5))
+        days.tap()
+        days.typeText("10")
+        app.buttons["Bitti"].firstMatch.tap()
+        app.buttons["maxMaximizeButton"].tap()
+        XCTAssertTrue(element(app, "maxDetailRoot").waitForExistence(timeout: 10))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+    }
 }

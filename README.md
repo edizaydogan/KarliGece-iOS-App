@@ -4,8 +4,6 @@ TL vadesiz / gecelik **mevduat** hesapları için net faiz hesaplayan iOS uygula
 
 > Hiçbir banka kuralı ya da vergi oranı koda gömülü değildir. Stopaj %17,5 ile ön dolu gelir ama bu oran **temsilîdir**; kullanmadan önce yürürlükteki oranı kontrol edin. Uygulama finansal tavsiye vermez.
 
-**Kapsam dışı:** para piyasası fonları, katılım bankası kâr payı ve döviz mevduatı. Bunların vergi rejimi ve getiri yapısı farklıdır.
-
 ## Sekmeler
 
 | Sekme | Ne yapar |

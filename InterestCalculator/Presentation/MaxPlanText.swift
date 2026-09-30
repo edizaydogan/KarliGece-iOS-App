@@ -25,6 +25,15 @@ enum MaxPlanText {
         "%\(percent.grouped(fractionDigits: 0...2)) · \(isNet ? "net" : "brüt")"
     }
 
+    /// Para ayrılmayan bankanın başlığı: "%42 · brüt", EFT ücreti varsa
+    /// "%42 · brüt · EFT 7,5 ₺".
+    static func caption(for bank: MaxPlan.BankRef) -> String {
+        let rate = rateCaption(percent: bank.annualRatePercent, isNet: bank.rateIsNet)
+        guard let fee = bank.eftFee, fee > 0 else { return rate }
+        // Kırılmaz boşluk: "EFT", tutar ve "₺" ayrı satırlara düşmesin.
+        return "\(rate) · EFT\u{00A0}\(fee.grouped(fractionDigits: 0...2))\u{00A0}₺"
+    }
+
     /// Şart cümlesi; şart yoksa (ya da sıfırsa) nil.
     private static func requirement(_ rule: MaxPlan.IdleRule) -> String? {
         switch rule {

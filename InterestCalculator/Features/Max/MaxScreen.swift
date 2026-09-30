@@ -3,7 +3,8 @@
 //  InterestCalculator
 //
 //  Tab 4 — Max. Tutarı kayıtlı bankalara, girilen gün sayısının sonunda en
-//  yüksek toplam net kazancı verecek şekilde böler (MaxPlanner). "Maksimize Et"
+//  yüksek toplam net kazancı (EFT ücretleri düşülmüş) verecek şekilde böler
+//  (MaxPlanner). "Maksimize Et"
 //  sonucu detay sayfasında açar ve geçmişin başına ekler; geçmiş satırları hesap
 //  tarihini gösterir ve aynı detayı açar.
 //
@@ -279,9 +280,9 @@ struct MaxScreen: View {
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 2) {
-                Text(moneyText(plan.totalNet))
+                Text(moneyText(plan.totalProfit))
                     .font(.system(.body, design: .rounded).weight(.semibold))
-                    .foregroundStyle(plan.totalNet > 0 ? Color.aurora : Color.slate)
+                    .foregroundStyle(plan.totalProfit > 0 ? Color.aurora : Color.slate)
                     .monospacedDigit()
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -302,7 +303,7 @@ struct MaxScreen: View {
     private func historyAccessibility(_ record: MaxPlanRecord) -> String {
         let plan = record.plan
         let date = record.createdAt.formatted(date: .abbreviated, time: .shortened)
-        return "\(date): \(moneyText(plan.amount)), \(plan.nights) gün, net kazanç \(moneyText(plan.totalNet))"
+        return "\(date): \(moneyText(plan.amount)), \(plan.nights) gün, net kazanç \(moneyText(plan.totalProfit))"
     }
 
     // MARK: - Hesap
@@ -350,14 +351,15 @@ struct MaxScreen: View {
         focused = nil
         isComputing = true
         let banks = state.planningConditions
+        let eftFees = state.planningEftFees
         let withholding = state.withholdingRule
         let start = AccrualCalendar.today()
         let weekday = AccrualCalendar.weekday(for: start)
         Task {
             // Uzun vadede binlerce motor çağrısı: ana iş parçacığını bloklamasın.
             let plan = await Task.detached(priority: .userInitiated) {
-                MaxPlanner.plan(amount: amount, banks: banks, withholding: withholding,
-                                nights: days, startWeekday: weekday)
+                MaxPlanner.plan(amount: amount, banks: banks, eftFees: eftFees,
+                                withholding: withholding, nights: days, startWeekday: weekday)
             }.value
             let record = MaxPlanRecord(id: UUID(), createdAt: Date(), startDate: start, plan: plan)
             state.recordMaxPlan(record)

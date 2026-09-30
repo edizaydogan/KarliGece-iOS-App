@@ -5,6 +5,8 @@
 //  Max planlayıcının sonucu ve geçmiş kaydı. Yalnız düz değerler taşır (motor
 //  tipi yok), bu yüzden Codable'dır: geçmiş, planı hesaplandığı andaki haliyle
 //  saklar — bankalar ya da stopaj sonradan değişse de kayıt değişmez.
+//  Sonradan eklenen alanlar opsiyoneldir: eski kayıtlar (ve onlarla birlikte
+//  tüm oturum) çözülmeye devam etsin.
 //
 
 import Foundation
@@ -50,14 +52,19 @@ nonisolated struct MaxPlan: Hashable, Sendable, Codable {
         var grossInterest: Money
         var deductions: Money
         var netInterest: Money
+        /// Bankanın EFT ücreti (hesap anındaki); kazançtan bir kez düşülür.
+        /// nil: EFT ücreti eklenmeden önce kaydedilmiş plan, 0 sayılır.
+        var eftFee: Money?
         /// Sınırlı kademede: üst sınıra kalan (sınır − vade sonu bakiyesi).
         var headroom: Money?
         /// Sınırlı kademede: vade sonu bakiyesinin 1 günlük net faizi (payın tabanı).
         var oneDayNet: Money?
 
         var id: UUID { bankID }
-        /// Vade sonu bakiyesi = yatırılan + net kazanç.
+        /// Vade sonu bakiyesi = yatırılan + net kazanç (bankadaki bakiye; EFT hariç).
         var finalBalance: Money { deposit + netInterest }
+        /// Bankanın karı: N günlük net kazanç − EFT ücreti.
+        var profit: Money { netInterest - (eftFee ?? 0) }
     }
 
     /// Plana para ayrılmayan banka.
@@ -66,14 +73,21 @@ nonisolated struct MaxPlan: Hashable, Sendable, Codable {
         var name: String
         var annualRatePercent: Decimal
         var rateIsNet: Bool
+        /// nil: EFT ücreti eklenmeden önce kaydedilmiş plan.
+        var eftFee: Money?
     }
 
     /// Aynı kurallarla tek bir bankaya yatırılabilecek en iyi seçenek. Plan en az
-    /// bunun kadar kazandırır; fark, parayı bölmenin getirisidir.
+    /// bunun kadar kar ettirir; fark, parayı bölmenin getirisidir.
     nonisolated struct Baseline: Hashable, Sendable, Codable {
         var bankName: String
         var deposit: Money
         var netInterest: Money
+        /// nil: EFT ücreti eklenmeden önce kaydedilmiş plan, 0 sayılır.
+        var eftFee: Money?
+
+        /// N günlük net kazanç − EFT ücreti.
+        var profit: Money { netInterest - (eftFee ?? 0) }
     }
 
     var amount: Money
@@ -81,12 +95,15 @@ nonisolated struct MaxPlan: Hashable, Sendable, Codable {
     /// Kademe payı: vade sonu bakiyesindeki 1 günlük net faizin yüzde kaçı
     /// (hesap anındaki değer; ayar sonradan değişse de kayıt doğru kalır).
     var bufferPercent: Decimal
+    /// Bir bankaya para ayrılması için bankanın karının (net kazanç − EFT) AŞMASI
+    /// gereken tutar (hesap anındaki). nil: bu kural eklenmeden önce kaydedilmiş plan.
+    var minimumProfit: Money?
     /// Hesapta kullanılan toplam stopaj (yüzde değeri).
     var withholdingPercent: Decimal
     /// Para ayrılan bankalar, Düzenle'deki sırayla.
     var allocations: [Allocation]
     var unusedBanks: [BankRef]
-    /// Hiçbir bankaya kazancı artırarak eklenemeyen tutar.
+    /// Hiçbir bankaya kazancı artırarak (ve kar eşiğini aşarak) eklenemeyen tutar.
     var unallocated: Money
     var bestSingleBank: Baseline?
 
@@ -94,6 +111,9 @@ nonisolated struct MaxPlan: Hashable, Sendable, Codable {
     var totalGross: Money { allocations.reduce(0) { $0 + $1.grossInterest } }
     var totalDeductions: Money { allocations.reduce(0) { $0 + $1.deductions } }
     var totalNet: Money { allocations.reduce(0) { $0 + $1.netInterest } }
+    var totalEftFees: Money { allocations.reduce(0) { $0 + ($1.eftFee ?? 0) } }
+    /// Toplam kar: net kazanç − EFT ücretleri. Planlayıcının en yükselttiği değer.
+    var totalProfit: Money { allocations.reduce(0) { $0 + $1.profit } }
 }
 
 /// Max geçmişinin bir satırı: hesap anı + planın kendisi.

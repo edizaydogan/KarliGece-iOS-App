@@ -2,8 +2,9 @@
 //  MaxHistoryTests.swift
 //  InterestCalculatorTests
 //
-//  Max geçmişi: kaydın JSON'da kuruş kaybetmemesi, geçmiş alanından önceki
-//  oturumların çözülmesi, sıra ve sınır, planlayıcı girdisinin gösterim adları.
+//  Max geçmişi: kaydın JSON'da kuruş kaybetmemesi, geçmiş ve EFT alanlarından
+//  önceki oturumların çözülmesi, sıra ve sınır, planlayıcı girdisinin gösterim
+//  adları ve EFT ücretleri.
 //  AppState/SessionSnapshot MainActor olduğu için suite @MainActor. save() /
 //  SessionStore ÇAĞRILMAZ: testler uygulama sürecinde çalışır ve simülatördeki
 //  gerçek oturumun üzerine yazar.
@@ -41,6 +42,64 @@ struct MaxHistoryTests {
         let decoded = try JSONDecoder().decode(MaxPlanRecord.self, from: data)
         #expect(decoded == original)
         #expect(decoded.plan.totalNet == original.plan.totalNet)
+    }
+
+    /// Kodlanmış JSON'dan bir anahtarı metin üzerinde siler (eski biçimi taklit
+    /// eder). JSONSerialization'dan geçirilmez: sayılar Double'a dönüşüp kuruş kaybetmesin.
+    private func removingKey(_ key: String, from json: String) -> String {
+        let pair = "\"\(key)\":(\"[^\"]*\"|[-0-9.eE+]+)"
+        return json
+            .replacingOccurrences(of: "," + pair, with: "", options: .regularExpression)
+            .replacingOccurrences(of: pair + ",", with: "", options: .regularExpression)
+    }
+
+    @Test("EFT alanlarından önce kaydedilmiş plan çözülür: EFT 0 sayılır, kar eşiği yok")
+    func legacyRecordWithoutEftDecodes() throws {
+        let original = record(amount: d("60000.37"))
+        var json = try #require(String(data: JSONEncoder().encode(original), encoding: .utf8))
+        #expect(json.contains("\"eftFee\"") && json.contains("\"minimumProfit\""))
+        json = removingKey("minimumProfit", from: removingKey("eftFee", from: json))
+        #expect(!json.contains("eftFee") && !json.contains("minimumProfit"))
+
+        let decoded = try JSONDecoder().decode(MaxPlanRecord.self, from: Data(json.utf8))
+        #expect(decoded.plan.minimumProfit == nil)
+        #expect(decoded.plan.bestSingleBank?.eftFee == nil)
+        #expect(decoded.plan.allocations.map(\.deposit) == original.plan.allocations.map(\.deposit))
+        #expect(decoded.plan.allocations.allSatisfy { $0.eftFee == nil && $0.profit == $0.netInterest })
+        #expect(decoded.plan.totalProfit == original.plan.totalNet)
+    }
+
+    @Test("EFT alanından önce kaydedilmiş banka taslağı çözülür: EFT boş (0 ₺)")
+    func legacyDraftWithoutEftDecodes() throws {
+        var draft = BankConditionDraft.sample
+        draft.eftFeeText = "7,50"
+        var json = try #require(String(data: JSONEncoder().encode(draft), encoding: .utf8))
+        #expect(json.contains("eftFeeText"))
+        json = removingKey("eftFeeText", from: json)
+        #expect(!json.contains("eftFeeText"))
+
+        let decoded = try JSONDecoder().decode(BankConditionDraft.self, from: Data(json.utf8))
+        var expected = draft
+        expected.eftFeeText = ""
+        #expect(decoded == expected)
+        #expect(decoded.eftFee == 0)
+    }
+
+    @Test("EFT metni kaydedilir ve ayrıştırılır; motor koşuluna girmez")
+    func eftFeeDraft() throws {
+        var draft = BankConditionDraft.sample
+        draft.eftFeeText = "7,50"
+        let decoded = try JSONDecoder().decode(BankConditionDraft.self, from: JSONEncoder().encode(draft))
+        #expect(decoded == draft)
+        #expect(decoded.eftFee == d("7.5"))
+
+        var withoutFee = draft
+        withoutFee.eftFeeText = ""
+        #expect(draft.makeCondition() == withoutFee.makeCondition())
+
+        for text in ["", "abc", "-5"] {
+            #expect(BankConditionDraft(eftFeeText: text).eftFee == 0)
+        }
     }
 
     @Test("Geçmiş alanından önce kaydedilmiş oturum çözülür")
@@ -106,14 +165,16 @@ struct MaxHistoryTests {
         #expect(state.maxHistory.count == 1)
     }
 
-    @Test("Planlayıcı girdisi gösterim adlarını taşır; motor koşulu aynı")
+    @Test("Planlayıcı girdisi gösterim adlarını ve EFT ücretlerini taşır; motor koşulu aynı")
     func planningConditions() {
         let state = AppState(loadPersisted: false)
         state.banks = [.sample, .blankDefault]
+        state.banks[0].eftFeeText = "7,50"
         let conditions = state.planningConditions
         #expect(conditions.map(\.name) == ["Örnek Banka", "Adsız banka 2"])
         var expected = state.banks[1].makeCondition()
         expected.name = "Adsız banka 2"
         #expect(conditions[1] == expected)
+        #expect(state.planningEftFees == [state.banks[0].id: d("7.5"), state.banks[1].id: 0])
     }
 }

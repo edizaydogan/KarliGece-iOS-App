@@ -24,6 +24,23 @@ final class InterestCalculatorUITests: XCTestCase {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
 
+    /// Form'un alt sıralarındaki bir alandan (ör. oran) sonra klavye kapanırken
+    /// Form ~0,1 sn yukarı sıçrayıp geri döner; XCUITest bu hareketi beklemez ve
+    /// hemen dokunmak bir üst satıra düşer. Öğenin çerçevesi iki ardışık okumada
+    /// aynı kalana dek bekler, sonra dokunur.
+    @MainActor
+    private func tapWhenSettled(_ element: XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout: 5))
+        var frame = element.frame
+        for _ in 0..<20 {
+            Thread.sleep(forTimeInterval: 0.15)
+            let current = element.frame
+            if current == frame { break }
+            frame = current
+        }
+        element.tap()
+    }
+
     @MainActor
     func testAllTabsOpen() throws {
         let app = XCUIApplication()
@@ -97,7 +114,7 @@ final class InterestCalculatorUITests: XCTestCase {
         rate.typeText("45")
         app.buttons["Bitti"].firstMatch.tap()
 
-        app.buttons["Banka ekle"].tap()
+        tapWhenSettled(app.buttons["Banka ekle"])
         XCTAssertTrue(rate.waitForExistence(timeout: 5))
         rate.tap()
         rate.typeText("40")
@@ -197,7 +214,7 @@ final class InterestCalculatorUITests: XCTestCase {
         app.launchArguments = ["-uitesting"]   // kalıcılığı atla: geçmiş boş başlar
         app.launch()
 
-        // Düzenle'de tutar + oran.
+        // Düzenle'de tutar + oran + EFT ücreti.
         app.tabBars.buttons["Düzenle"].tap()
         let balance = app.textFields["balanceField"]
         XCTAssertTrue(balance.waitForExistence(timeout: 5))
@@ -208,6 +225,10 @@ final class InterestCalculatorUITests: XCTestCase {
         XCTAssertTrue(rate.waitForExistence(timeout: 5))
         rate.tap()
         rate.typeText("45")
+        app.buttons["Bitti"].firstMatch.tap()
+        let eftFee = app.textFields["eftFeeField"]
+        tapWhenSettled(eftFee)
+        eftFee.typeText("5")
         app.buttons["Bitti"].firstMatch.tap()
 
         // Max: geçmiş boş; gün girilmeden buton kapalı.

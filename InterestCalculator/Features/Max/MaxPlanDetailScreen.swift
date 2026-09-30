@@ -2,8 +2,9 @@
 //  MaxPlanDetailScreen.swift
 //  InterestCalculator
 //
-//  Max planının detayı: toplam net kazanç, banka banka yatırılacak tutar ve
-//  kademe payı, dağıtılmayan tutar, para ayrılmayan bankalar ve toplamlar.
+//  Max planının detayı: toplam net kazanç (EFT düşülmüş), banka banka yatırılacak
+//  tutar, kademe payı ve EFT ücreti, dağıtılmayan tutar, para ayrılmayan bankalar
+//  ve toplamlar.
 //  Yalnız kayıttaki değerleri gösterir — hesap YAPMAZ; bankalar sonradan değişse
 //  de hesap anındaki plan görünür.
 //
@@ -59,7 +60,7 @@ struct MaxPlanDetailScreen: View {
 
     private var heroCard: some View {
         VStack(spacing: 6) {
-            Text(moneyText(plan.totalNet))
+            Text(moneyText(plan.totalProfit))
                 .font(dynamicTypeSize.isAccessibilitySize
                       ? .system(.largeTitle, design: .rounded).weight(.semibold)
                       : .system(size: heroSize, weight: .semibold, design: .rounded))
@@ -67,10 +68,15 @@ struct MaxPlanDetailScreen: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .monospacedDigit()
-                .foregroundStyle(plan.totalNet > 0 ? Color.aurora : Color.slate)
+                .foregroundStyle(plan.totalProfit > 0 ? Color.aurora : Color.slate)
             Text("\(plan.nights) günlük toplam net kazanç")
                 .font(.subheadline)
                 .foregroundStyle(.slate)
+            if plan.totalEftFees > 0 {
+                Text("\(moneyText(plan.totalEftFees)) EFT ücreti düşüldü")
+                    .font(.footnote)
+                    .foregroundStyle(.slate)
+            }
             Text("\(moneyText(plan.amount)) · \(dateText(record.startDate)) → \(dateText(endDate))")
                 .font(.footnote)
                 .foregroundStyle(.slate)
@@ -88,11 +94,12 @@ struct MaxPlanDetailScreen: View {
         .accessibilityIdentifier("maxDetailTotalNet")
     }
 
-    /// Planın, aynı kurallarla tek bankaya konan en iyi seçeneğe göre fazlası.
-    /// Plan zaten tek banka kullanıyorsa ya da fazlası yoksa gösterilmez.
+    /// Planın, aynı kurallarla tek bankaya konan en iyi seçeneğe göre fazlası
+    /// (ikisi de EFT düşülmüş). Plan zaten tek banka kullanıyorsa ya da fazlası
+    /// yoksa gösterilmez.
     private var comparison: (baseline: MaxPlan.Baseline, gain: Money)? {
         guard plan.allocations.count > 1, let baseline = plan.bestSingleBank else { return nil }
-        let gain = plan.totalNet - baseline.netInterest
+        let gain = plan.totalProfit - baseline.profit
         return gain > 0 ? (baseline, gain) : nil
     }
 
@@ -104,7 +111,7 @@ struct MaxPlanDetailScreen: View {
                 Text("Bölmek \(moneyText(comparison.gain)) daha fazla kazandırıyor")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.ink)
-                Text("Tek bankada en iyisi \(comparison.baseline.bankName): \(moneyText(comparison.baseline.deposit)) ile \(moneyText(comparison.baseline.netInterest)) net.")
+                Text("Tek bankada en iyisi \(comparison.baseline.bankName): \(moneyText(comparison.baseline.deposit)) ile \(moneyText(comparison.baseline.profit)) net.")
                     .font(.caption)
                     .foregroundStyle(.slate)
             }
@@ -152,7 +159,11 @@ struct MaxPlanDetailScreen: View {
             if allocation.excessAboveCap > 0 {
                 moneyRow("Limit üstü (faizsiz)", allocation.excessAboveCap)
             }
-            moneyRow("\(plan.nights) günlük net kazanç", allocation.netInterest, emphasized: true)
+            if let fee = allocation.eftFee, fee > 0 {
+                moneyRow("\(plan.nights) günlük net faiz", allocation.netInterest)
+                deductionRow("EFT ücreti", fee)
+            }
+            moneyRow("\(plan.nights) günlük net kazanç", allocation.profit, emphasized: true)
             moneyRow("Vade sonu bakiye", allocation.finalBalance)
 
             if let headroom = allocation.headroom, let upper = allocation.tier?.upperBound {
@@ -187,7 +198,7 @@ struct MaxPlanDetailScreen: View {
             Text("Kazanç sağlayan bir dağılım bulunamadı")
                 .font(.headline)
                 .foregroundStyle(.ink)
-            Text("Bu tutar ve sürede hiçbir banka net kazanç sağlamıyor. Düzenle'deki oranları ve vadesiz şartlarını kontrol edin.")
+            Text(noEarningsText)
                 .font(.footnote)
                 .foregroundStyle(.slate)
         }
@@ -208,7 +219,7 @@ struct MaxPlanDetailScreen: View {
                     .foregroundStyle(.ink)
                     .monospacedDigit()
             }
-            Text("Bu tutar hiçbir bankaya kazancı artırarak eklenemiyor; örneğin eklendiği banka üst kademeye geçip daha fazla vadesiz tutmayı gerektiriyor. Vadesiz bir hesapta tutabilirsiniz.")
+            Text(unallocatedText)
                 .font(.footnote)
                 .foregroundStyle(.slate)
         }
@@ -229,12 +240,12 @@ struct MaxPlanDetailScreen: View {
                 HStack {
                     Text(bank.name).foregroundStyle(.ink)
                     Spacer()
-                    Text(MaxPlanText.rateCaption(percent: bank.annualRatePercent, isNet: bank.rateIsNet))
+                    Text(MaxPlanText.caption(for: bank))
                         .foregroundStyle(.slate)
                 }
                 .font(.subheadline)
             }
-            Text("Bu tutar ve sürede bu bankalara para ayırmak toplam kazancı artırmıyor.")
+            Text(unusedText)
                 .font(.caption)
                 .foregroundStyle(.slate)
         }
@@ -254,9 +265,12 @@ struct MaxPlanDetailScreen: View {
             hairline
             moneyRow("Brüt faiz", plan.totalGross)
             deductionRow("Stopaj (%\(plan.withholdingPercent.grouped(fractionDigits: 0...2)))", plan.totalDeductions)
+            if plan.totalEftFees > 0 {
+                deductionRow("EFT ücretleri", plan.totalEftFees)
+            }
             hairline
-            moneyRow("Net kazanç (\(plan.nights) gün)", plan.totalNet, emphasized: true)
-            moneyRow("Vade sonu toplam", plan.amount + plan.totalNet)
+            moneyRow("Net kazanç (\(plan.nights) gün)", plan.totalProfit, emphasized: true)
+            moneyRow("Vade sonu toplam", plan.amount + plan.totalProfit)
         }
         .padding(16)
         .cardSurface()
@@ -302,8 +316,11 @@ struct MaxPlanDetailScreen: View {
     private var notes: some View {
         VStack(alignment: .leading, spacing: 6) {
             noteText("Kademeli bankalarda tutar, vade sonunda üst kademeye geçmeyecek şekilde seçilir; sınıra en az vade sonu bakiyesinin 1 günlük net faizi × %\(bufferText) kadar pay kalır.")
+            if let threshold = plan.minimumProfit {
+                noteText("EFT ücreti, para ayrılan her bankanın kazancından bir kez düşülür. EFT düşüldükten sonra kazancı \(amountText(threshold)) ₺'yi geçmeyen bankaya para ayrılmaz.")
+            }
             noteText("Plan hesap günü başlar. Hafta içi kazanç ertesi gün, hafta sonu (Cuma–Pazar) kazancı Pazartesi valörüyle bakiyeye eklenip bileşiklenir.")
-            noteText("Vadesiz kalan ve faize giren tutarlar başlangıç değerleridir. Bankalar ve stopaj hesap anındaki Düzenle değerleridir; sonraki değişiklikler bu planı değiştirmez.")
+            noteText("Vadesiz kalan ve faize giren tutarlar başlangıç değerleridir. Bankalar, stopaj ve EFT ücretleri hesap anındaki Düzenle değerleridir; sonraki değişiklikler bu planı değiştirmez.")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 4)
@@ -313,6 +330,28 @@ struct MaxPlanDetailScreen: View {
         Text(text)
             .font(.footnote)
             .foregroundStyle(.slate)
+    }
+
+    private var noEarningsText: String {
+        guard let threshold = plan.minimumProfit else {
+            return "Bu tutar ve sürede hiçbir banka net kazanç sağlamıyor. Düzenle'deki oranları ve vadesiz şartlarını kontrol edin."
+        }
+        return "Bu tutar ve sürede hiçbir banka, EFT ücreti düşüldükten sonra \(amountText(threshold)) ₺'den fazla kazandırmıyor. Tutarı ya da süreyi artırabilir, Düzenle'deki oranları, vadesiz şartlarını ve EFT ücretlerini kontrol edebilirsiniz."
+    }
+
+    private var unallocatedText: String {
+        let reason = "örneğin eklendiği banka üst kademeye geçip daha fazla vadesiz tutmayı gerektiriyor"
+        guard let threshold = plan.minimumProfit else {
+            return "Bu tutar hiçbir bankaya kazancı artırarak eklenemiyor; \(reason). Vadesiz bir hesapta tutabilirsiniz."
+        }
+        return "Bu tutar hiçbir bankaya kazancı artırarak eklenemiyor; \(reason) ya da bankadaki kazanç EFT ücreti düşüldükten sonra \(amountText(threshold)) ₺'yi geçmiyor. Vadesiz bir hesapta tutabilirsiniz."
+    }
+
+    private var unusedText: String {
+        guard let threshold = plan.minimumProfit else {
+            return "Bu tutar ve sürede bu bankalara para ayırmak toplam kazancı artırmıyor."
+        }
+        return "Bu tutar ve sürede bu bankalara para ayırmak toplam kazancı artırmıyor ya da bankadaki kazanç EFT ücreti düşüldükten sonra \(amountText(threshold)) ₺'yi geçmiyor."
     }
 
     private var disclaimer: some View {
@@ -342,6 +381,11 @@ struct MaxPlanDetailScreen: View {
         plan.bufferPercent.grouped(fractionDigits: 0...2)
     }
 
+    /// Cümle içi tutar: "20", "7,5" (₺ ve ek cümlede).
+    private func amountText(_ value: Money) -> String {
+        value.grouped(fractionDigits: 0...2)
+    }
+
     /// Toplam tutar içindeki pay: "%16,3".
     private func shareText(_ deposit: Money) -> String {
         guard plan.amount > 0 else { return "" }
@@ -363,8 +407,8 @@ struct MaxPlanDetailScreen: View {
 
 #Preview {
     let banks = AppState.preview.planningConditions
-    let plan = MaxPlanner.plan(amount: 152_000, banks: banks, withholding: .single(.percent(17.5)),
-                               nights: 10, startWeekday: .monday)
+    let plan = MaxPlanner.plan(amount: 152_000, banks: banks, eftFees: [banks[0].id: 7],
+                               withholding: .single(.percent(17.5)), nights: 10, startWeekday: .monday)
     NavigationStack {
         MaxPlanDetailScreen(record: MaxPlanRecord(id: UUID(), createdAt: Date(),
                                                   startDate: AccrualCalendar.today(), plan: plan))

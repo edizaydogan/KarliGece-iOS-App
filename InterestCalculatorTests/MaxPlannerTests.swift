@@ -8,7 +8,9 @@
 //  vadesiz); 152.000 ₺, 10 gün, Pazartesi başlangıç, stopaj %17,5, kademe payı
 //  %10. Golden'lar motordan gelir ve B'nin 10 gecesi elle doğrulandı (valör:
 //  Cuma+Cmt+Paz Pazartesi toplu). Optimumluk bağımsız bir kaba ızgara
-//  aramasıyla da kontrol edilir.
+//  aramasıyla da kontrol edilir. EFT kuralı: ücret para ayrılan bankanın
+//  kazancından bir kez düşülür; bankanın kendi karı 20 ₺'yi aşmıyorsa o bankaya
+//  para ayrılmaz.
 //
 
 import Testing
@@ -39,9 +41,12 @@ struct MaxPlannerTests {
 
     private func plan(_ banks: [BankCondition], amount: Decimal = d("152000"), nights: Int = 10,
                       start: Weekday = .monday,
-                      buffer: Percentage = MaxPlanner.defaultBuffer) -> MaxPlan {
-        MaxPlanner.plan(amount: amount, banks: banks, withholding: withholding, nights: nights,
-                        startWeekday: start, buffer: buffer)
+                      buffer: Percentage = MaxPlanner.defaultBuffer,
+                      eftFees: [UUID: Money] = [:],
+                      minimumProfit: Money = MaxPlanner.defaultMinimumProfit) -> MaxPlan {
+        MaxPlanner.plan(amount: amount, banks: banks, eftFees: eftFees, withholding: withholding,
+                        nights: nights, startWeekday: start, buffer: buffer,
+                        minimumProfit: minimumProfit)
     }
 
     private func project(_ bank: BankCondition, _ deposit: Money, nights: Int = 10,
@@ -65,6 +70,14 @@ struct MaxPlannerTests {
               let upper = table.resolve(for: deposit).tier.upperBound else { return true }
         let final = deposit + project(bank, deposit, nights: nights, start: start).netInterest
         return final < upper && upper - final >= buffer.applied(to: oneNightNet(bank, at: final))
+    }
+
+    /// Kullanıcı kuralı, planlayıcıdan bağımsız: para ayrılan bankanın karı
+    /// (N günlük net kazanç − EFT) 20 ₺'yi AŞAR.
+    private func earnsEnough(_ bank: BankCondition, deposit: Money, eftFee: Money = 0,
+                             nights: Int = 10, start: Weekday = .monday) -> Bool {
+        project(bank, deposit, nights: nights, start: start).netInterest - eftFee
+            > MaxPlanner.defaultMinimumProfit
     }
 
     private func allocation(_ plan: MaxPlan, _ name: String) -> MaxPlan.Allocation? {
@@ -102,6 +115,10 @@ struct MaxPlannerTests {
         #expect(result.totalDeductions == d("281.45"))
         #expect(result.bufferPercent == 10)
         #expect(result.withholdingPercent == d("17.5"))
+        // EFT'siz: kar = net kazanç; eşik plana kaydedilir.
+        #expect(result.totalEftFees == 0)
+        #expect(result.totalProfit == d("1326.66"))
+        #expect(result.minimumProfit == 20)
     }
 
     @Test("Golden · tek bankada en iyisi hepsini C'ye koymak: 1.321,05 ₺; bölmek 5,61 ₺ fazla",
@@ -130,19 +147,27 @@ struct MaxPlannerTests {
     // MARK: - Optimumluk
 
     /// Bağımsız kontrol: her bankaya 1.000 ₺'lik adımlarla tutar dağıtan, tamamını
-    /// yatıran ve kademe kuralını bozan noktaları eleyen kaba arama planı geçemez.
+    /// yatıran, kademe kuralını ve 20 ₺ kuralını bozan noktaları eleyen kaba arama
+    /// planı geçemez. EFT'li çeşitte B'nin ücreti (6 ₺) bölmenin getirisini aşar.
     @Test("Kaba ızgara araması planı geçemez", .tags(.invariant),
-          arguments: [["A", "B", "C"], ["A", "B"], ["B", "C"], ["A", "C"]])
-    func gridSearchCannotBeatPlan(names: [String]) {
+          arguments: [["A", "B", "C"], ["A", "B"], ["B", "C"], ["A", "C"]], [false, true])
+    func gridSearchCannotBeatPlan(names: [String], withFees: Bool) {
         let all = ["A": bankA, "B": bankB, "C": bankC]
         let banks = names.compactMap { all[$0] }
+        let fees: [UUID: Money] = withFees
+            ? [bankA.id: d("4"), bankB.id: d("6"), bankC.id: d("2.5")]
+            : [:]
         let step = d("1000")
         let steps = 152
-        // Izgara noktalarındaki kazanç; kuralı bozan nokta nil.
+        // Izgara noktalarındaki kar (net − EFT); 0 = banka kullanılmaz; kuralı bozan nokta nil.
         let tables: [[Money?]] = banks.map { bank in
-            (0...steps).map { index in
+            let fee = fees[bank.id] ?? 0
+            return (0...steps).map { index in
                 let deposit = step * Decimal(index)
-                return respectsTierRule(bank, deposit: deposit) ? project(bank, deposit).netInterest : nil
+                guard deposit > 0 else { return 0 }
+                guard respectsTierRule(bank, deposit: deposit),
+                      earnsEnough(bank, deposit: deposit, eftFee: fee) else { return nil }
+                return project(bank, deposit).netInterest - fee
             }
         }
         var best: Money = 0
@@ -161,7 +186,7 @@ struct MaxPlannerTests {
             }
         }
         #expect(best > 0)
-        #expect(plan(banks).totalNet >= best)
+        #expect(plan(banks, eftFees: fees).totalProfit >= best)
     }
 
     @Test("A + B · B'yi 100 binin hemen altında tutup kalanı A'ya koymak hepsini B'ye koymaktan iyi")
@@ -225,9 +250,12 @@ struct MaxPlannerTests {
 
     // MARK: - Değişmezler
 
-    @Test("Her tahsis motorla birebir, tutar tam dağılır, kural tutar, plan tek bankadan az değil",
-          .tags(.invariant))
-    func invariantsAcrossScenarios() {
+    @Test("Her tahsis motorla birebir, tutar tam dağılır, kurallar tutar, plan tek bankadan az değil",
+          .tags(.invariant), arguments: [false, true])
+    func invariantsAcrossScenarios(withFees: Bool) {
+        let fees: [UUID: Money] = withFees
+            ? [bankA.id: d("3"), bankB.id: d("8"), bankC.id: d("1.5")]
+            : [:]
         let scenarios: [(banks: [BankCondition], amount: Money)] = [
             ([bankA, bankB, bankC], d("152000")),
             ([bankA, bankB, bankC], d("60000")),
@@ -239,9 +267,11 @@ struct MaxPlannerTests {
         for scenario in scenarios {
             for start in [Weekday.monday, .thursday, .friday, .sunday] {
                 for nights in [1, 7, 10, 45] {
-                    let result = plan(scenario.banks, amount: scenario.amount, nights: nights, start: start)
+                    let result = plan(scenario.banks, amount: scenario.amount, nights: nights,
+                                      start: start, eftFees: fees)
                     #expect(result.totalDeposited + result.unallocated == scenario.amount)
                     #expect(result.unallocated >= 0)
+                    #expect(result.totalProfit == result.totalNet - result.totalEftFees)
                     for item in result.allocations {
                         let bank = scenario.banks.first { $0.id == item.bankID }!
                         let direct = project(bank, item.deposit, nights: nights, start: start)
@@ -251,13 +281,17 @@ struct MaxPlannerTests {
                         #expect(item.idleAmount == direct.idleAmount)
                         #expect(item.interestBearing == direct.interestBearingBalance)
                         #expect(item.deposit > 0)
+                        #expect(item.eftFee == fees[bank.id] ?? 0)
+                        #expect(item.profit == direct.netInterest - (fees[bank.id] ?? 0))
+                        #expect(item.profit > MaxPlanner.defaultMinimumProfit)
                         #expect(respectsTierRule(bank, deposit: item.deposit, nights: nights, start: start))
                         if let upper = item.tier?.upperBound {
                             #expect(item.headroom == upper - item.finalBalance)
                         }
                     }
                     if let baseline = result.bestSingleBank {
-                        #expect(result.totalNet >= baseline.netInterest)
+                        #expect(result.totalProfit >= baseline.profit)
+                        #expect(baseline.profit > MaxPlanner.defaultMinimumProfit)
                     }
                 }
             }
@@ -301,6 +335,116 @@ struct MaxPlannerTests {
         let plain = BankCondition(name: "Şartsız", rateRule: .flat(.percent(40)))
         #expect(plan([premium, plain], amount: d("40000")).allocations.map(\.bankName) == ["Şartsız"])
         #expect(plan([premium, plain], amount: d("100000")).allocations.map(\.bankName) == ["Premium"])
+    }
+
+    // MARK: - EFT ve 20 ₺ kuralı
+
+    @Test("EFT · kazançtan bir kez düşülür; bölmeyi bozmuyorsa tutarlar değişmez", .tags(.golden))
+    func eftFeeIsDeductedOnce() throws {
+        // Bölmek C'ye göre 5,61 ₺ fazla net kazandırır; B'nin 5 ₺'si bunu yemez.
+        let result = plan([bankA, bankB, bankC], eftFees: [bankB.id: d("5"), bankC.id: d("2")])
+        #expect(result.allocations.map(\.bankName) == ["B", "C"])
+        let b = try #require(allocation(result, "B"))
+        let c = try #require(allocation(result, "C"))
+        #expect(b.deposit == d("24761.64"))
+        #expect(c.deposit == d("127238.36"))
+        #expect(b.eftFee == 5)
+        #expect(b.profit == d("230.98"))   // 235,98 − 5
+        #expect(c.profit == d("1088.68"))  // 1.090,68 − 2
+        #expect(result.totalNet == d("1326.66"))
+        #expect(result.totalEftFees == 7)
+        #expect(result.totalProfit == d("1319.66"))
+
+        // Tek bankada en iyisi de kendi EFT'sini öder: 1.321,05 − 2.
+        let baseline = try #require(result.bestSingleBank)
+        #expect(baseline.bankName == "C")
+        #expect(baseline.eftFee == 2)
+        #expect(baseline.profit == d("1319.05"))
+        #expect(result.totalProfit - baseline.profit == d("0.61"))
+    }
+
+    @Test("EFT · B'nin ücreti bölmenin getirisini aşınca hepsi C'ye gider")
+    func eftFeeCanCancelSplit() throws {
+        let result = plan([bankA, bankB, bankC], eftFees: [bankB.id: d("6")])
+        #expect(result.allocations.map(\.bankName) == ["C"])
+        #expect(result.allocations.first?.deposit == d("152000"))
+        #expect(result.totalProfit == d("1321.05"))   // C'nin EFT'si yok
+        // B kendi başına 20 ₺'den çok kazandırırdı; dışarıda kalma nedeni toplam kar.
+        #expect(earnsEnough(bankB, deposit: d("24761.64"), eftFee: d("6")))
+        #expect(result.unusedBanks.map(\.name) == ["A", "B"])
+        #expect(result.unusedBanks.first { $0.name == "B" }?.eftFee == 6)
+    }
+
+    @Test("20 ₺ kuralı · karı tam 20 ₺ olan banka kullanılmaz, 20,01 ₺ olan kullanılır",
+          .tags(.boundary))
+    func minimumProfitIsExclusive() throws {
+        let flat = BankCondition(name: "Şartsız", rateRule: .flat(.percent(45)))
+        let amount = d("50000")
+        let net = project(flat, amount).netInterest
+
+        let atThreshold = plan([flat], amount: amount, eftFees: [flat.id: net - 20])
+        #expect(atThreshold.allocations.isEmpty)
+        #expect(atThreshold.unallocated == amount)
+        #expect(atThreshold.unusedBanks.first?.eftFee == net - 20)
+        #expect(atThreshold.bestSingleBank == nil)
+
+        let above = plan([flat], amount: amount, eftFees: [flat.id: net - d("20.01")])
+        let only = try #require(above.allocations.first)
+        #expect(only.deposit == amount)
+        #expect(only.profit == d("20.01"))
+    }
+
+    @Test("20 ₺ kuralı · küçük tutarda EFT'siz banka da kullanılmaz; para dağıtılmaz")
+    func smallAmountStaysUnallocated() {
+        let flat = BankCondition(name: "Şartsız", rateRule: .flat(.percent(45)))
+        #expect(project(flat, d("1000")).netInterest < 20)
+        let result = plan([flat], amount: d("1000"))
+        #expect(result.allocations.isEmpty)
+        #expect(result.unallocated == d("1000"))
+        #expect(result.unusedBanks.map(\.name) == ["Şartsız"])
+        #expect(result.bestSingleBank == nil)
+    }
+
+    @Test("20 ₺ kuralı · toplamı artırsa da kendi karı 20 ₺'yi geçmeyen banka kullanılmaz")
+    func ownProfitDecidesNotContribution() throws {
+        // Limitli banka yalnız 1.000 ₺'ye %60 verir: 10 günde ~13,5 ₺ (Düz'den iyi, ama < 20).
+        let capped = BankCondition(name: "Limitli", rateRule: .flat(.percent(60)),
+                                   maxInterestBearingAmount: d("1000"))
+        let plain = BankCondition(name: "Düz", rateRule: .flat(.percent(40)))
+        let amount = d("100000")
+
+        let noRule = plan([capped, plain], amount: amount, minimumProfit: 0)
+        #expect(noRule.allocations.map(\.bankName) == ["Limitli", "Düz"])
+        let cappedPart = try #require(allocation(noRule, "Limitli"))
+        #expect(cappedPart.profit < 20)
+
+        let withRule = plan([capped, plain], amount: amount)
+        #expect(withRule.allocations.map(\.bankName) == ["Düz"])
+        #expect(withRule.allocations.first?.deposit == amount)
+        #expect(withRule.totalProfit < noRule.totalProfit)   // kural bilinçli olarak kazançtan vazgeçer
+    }
+
+    @Test("20 ₺ kuralı · eşik değişken ve plana kaydedilir; negatif eşik 0 sayılır")
+    func minimumProfitIsAParameter() {
+        #expect(plan([bankA], minimumProfit: 50).minimumProfit == 50)
+        #expect(plan([bankA], minimumProfit: -5).minimumProfit == 0)
+        // 1.000 ₺ / 10 gün A: ~7,8 ₺ — 0 eşikte kullanılır, 20 ₺ eşikte kullanılmaz.
+        #expect(plan([bankA], amount: d("1000"), minimumProfit: 0).allocations.count == 1)
+        #expect(plan([bankA], amount: d("1000")).allocations.isEmpty)
+    }
+
+    @Test("Kenar · EFT: negatif ücret 0, kuruşa yuvarlanır, listede olmayan banka 0 öder",
+          .tags(.edgeCase))
+    func eftFeeEdgeCases() {
+        let negative = plan([bankA], eftFees: [bankA.id: -5])
+        #expect(negative.allocations.first?.eftFee == 0)
+
+        let fractional = plan([bankA], eftFees: [bankA.id: d("5.555")])
+        #expect(fractional.allocations.first?.eftFee == d("5.56"))
+
+        let unknown = plan([bankA], eftFees: [UUID(): 10])
+        #expect(unknown.allocations.first?.eftFee == 0)
+        #expect(unknown.totalProfit == unknown.totalNet)
     }
 
     // MARK: - Kenar durumlar

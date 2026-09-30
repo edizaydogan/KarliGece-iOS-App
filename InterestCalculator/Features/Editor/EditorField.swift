@@ -13,6 +13,7 @@ enum EditorField: Hashable {
     case rate
     case idlePercentage
     case idleFixed
+    case eftFee
     case tierUpperBound(UUID)
     case tierAmount(UUID)
     /// Max'ın gün sayısı alanı.

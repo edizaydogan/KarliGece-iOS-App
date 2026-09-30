@@ -125,6 +125,11 @@ final class AppState {
         }
     }
 
+    /// Max planlayıcının EFT ücretleri, banka id'siyle (motor koşulu EFT taşımaz).
+    var planningEftFees: [UUID: Money] {
+        Dictionary(banks.map { ($0.id, $0.eftFee) }, uniquingKeysWith: { first, _ in first })
+    }
+
     /// Sonucu bloklayan (.error) tanılamalar.
     var blockingIssues: [CalculationDiagnostic] {
         result?.blockingIssues ?? []

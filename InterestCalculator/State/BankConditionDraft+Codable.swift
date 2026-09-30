@@ -13,7 +13,7 @@ extension BankConditionDraft: Codable {
     private enum CodingKeys: String, CodingKey {
         case id, name, annualRateText, rateBasis, idleKind
         case idlePercentageText, idleFixedAmountText, tierDrafts
-        case minTotalBalanceText, maxInterestBearingText
+        case minTotalBalanceText, maxInterestBearingText, eftFeeText
     }
 
     init(from decoder: Decoder) throws {
@@ -29,7 +29,9 @@ extension BankConditionDraft: Codable {
             idleFixedAmountText: try container.decode(String.self, forKey: .idleFixedAmountText),
             tierDrafts: try container.decode([TierDraft].self, forKey: .tierDrafts),
             minTotalBalanceText: try container.decode(String.self, forKey: .minTotalBalanceText),
-            maxInterestBearingText: try container.decode(String.self, forKey: .maxInterestBearingText)
+            maxInterestBearingText: try container.decode(String.self, forKey: .maxInterestBearingText),
+            // EFT alanından önce kaydedilmiş oturumlarda anahtar yoktur: boş (0 ₺).
+            eftFeeText: try container.decodeIfPresent(String.self, forKey: .eftFeeText) ?? ""
         )
     }
 
@@ -45,5 +47,6 @@ extension BankConditionDraft: Codable {
         try container.encode(tierDrafts, forKey: .tierDrafts)
         try container.encode(minTotalBalanceText, forKey: .minTotalBalanceText)
         try container.encode(maxInterestBearingText, forKey: .maxInterestBearingText)
+        try container.encode(eftFeeText, forKey: .eftFeeText)
     }
 }

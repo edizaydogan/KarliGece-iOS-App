@@ -3,10 +3,11 @@
 //  InterestCalculator
 //
 //  Max sekmesinin hesabı: bir tutarı kayıtlı bankalara, N günün sonunda en
-//  yüksek TOPLAM net kazancı verecek şekilde böler. Saf, deterministik; faiz
-//  matematiği YAZMAZ — her tutarın kazancı mevcut `CompoundingEngine.project`
-//  çağrısıdır (tek doğruluk kaynağı). Date'e dokunmaz; başlangıç günü dışarıdan
-//  gelir (Karşılaştır gibi bugünden başlar, hafta sonu snap'i yok).
+//  yüksek TOPLAM karı (net kazanç − EFT ücretleri) verecek şekilde böler. Saf,
+//  deterministik; faiz matematiği YAZMAZ — her tutarın kazancı mevcut
+//  `CompoundingEngine.project` çağrısıdır (tek doğruluk kaynağı). Date'e
+//  dokunmaz; başlangıç günü dışarıdan gelir (Karşılaştır gibi bugünden başlar,
+//  hafta sonu snap'i yok).
 //
 //  Kademe kuralı (kullanıcı tanımı): kademeli bir bankada bakiye N. günün
 //  sonunda ÜST kademeye geçmemeli. Kademenin tepesine yatırılan tutar, vade
@@ -14,19 +15,27 @@
 //  (varsayılan %10) kadar pay kalacak şekilde seçilir — sınırı geçmeye bir
 //  günlük faizden az kalır.
 //
+//  EFT kuralı (kullanıcı tanımı): para ayrılan her bankanın EFT ücreti o
+//  bankanın kazancından bir kez düşülür. Bankanın KENDİ karı (N günlük net
+//  kazanç − EFT) `minimumProfit`'i (varsayılan 20 ₺) aşmıyorsa o bankaya para
+//  ayrılmaz. Eşik bölmenin toplama katkısına değil, bankanın kendi karına bakar
+//  (kullanıcı seçimi).
+//
 //  Yöntem:
 //   1. Her banka için kademe başına bir SEÇENEK, yani yatırılabilecek
 //      [en az, en çok] aralığı. En az = kademenin alt sınırı (sabit vadesiz
-//      şartında şart tutarı da — altı hiç faize girmez); en çok = vade sonunda
-//      sınıra pay kalan en büyük tutar (motorla, kuruş hassasiyetinde ikili
-//      arama). Son kademe sınırsızdır.
+//      şartında şart tutarı da — altı hiç faize girmez), sonra karın eşiği
+//      aştığı ilk tutara yükseltilir; en çok = vade sonunda sınıra pay kalan en
+//      büyük tutar (ikisi de motorla, kuruş hassasiyetinde ikili arama). Son
+//      kademe sınırsızdır.
 //   2. Aralık içinde kazanç tutarla doğrusaldır (sabit şartta faize giren =
 //      tutar − şart; bileşik büyüme de tutarla orantılı). Eğim motordan iki
 //      noktayla ölçülür. Faize giren tavanı (limit) varsa eğri orada kırılır.
 //   3. Her banka için bir seçenek ya da "kullanma" seçilerek tüm kombinasyonlar
 //      denenir: önce alt sınırlar yatırılır, kalan para en yüksek eğimli
-//      parçadan başlayarak doldurulur (doğrusal programın açgözlü çözümü).
-//      Hiçbir yere kazancı artırarak sığmayan para DAĞITILMAZ.
+//      parçadan başlayarak doldurulur (doğrusal programın açgözlü çözümü);
+//      seçilen her bankanın EFT ücreti kombinasyonun karından düşülür. Hiçbir
+//      yere kazancı artırarak sığmayan para DAĞITILMAZ.
 //   4. En iyi kombinasyonun tutarları motorla yeniden hesaplanır.
 //
 
@@ -41,24 +50,37 @@ nonisolated enum MaxPlanner {
     /// Planlanabilecek gün aralığı (Özet'in vade üst sınırıyla aynı).
     static let dayRange = 1...365
 
+    /// Bir bankaya para ayrılması için bankanın karının (N günlük net kazanç −
+    /// EFT) AŞMASI gereken tutar. Değişebilir diye tek yerde tutulur; her plana
+    /// kaydedilir.
+    static let defaultMinimumProfit: Money = 20
+
     /// `amount` tutarını `banks` arasında, `startWeekday`'den başlayan `nights`
-    /// gecenin sonunda toplam net kazancı en yüksek olacak şekilde böler.
+    /// gecenin sonunda toplam kar (net kazanç − EFT) en yüksek olacak şekilde böler.
+    ///
+    /// `eftFees`: banka id'siyle EFT ücretleri; listede olmayan banka 0 ₺ öder,
+    /// negatif ücret 0 sayılır, ücret kuruşa yuvarlanır. EFT faiz koşulu olmadığı
+    /// için motor koşulunda (`BankCondition`) değil buradadır.
     static func plan(
         amount: Money,
         banks: [BankCondition],
+        eftFees: [UUID: Money] = [:],
         withholding: WithholdingRule,
         nights: Int,
         startWeekday: Weekday,
-        buffer: Percentage = defaultBuffer
+        buffer: Percentage = defaultBuffer,
+        minimumProfit: Money = defaultMinimumProfit
     ) -> MaxPlan {
         let context = Context(
             amount: max(0, floorToKurus(amount)),
             nights: min(max(nights, dayRange.lowerBound), dayRange.upperBound),
             startWeekday: startWeekday,
             withholding: withholding,
-            buffer: buffer.clampedToNonNegative()
+            buffer: buffer.clampedToNonNegative(),
+            minimumProfit: max(0, minimumProfit)
         )
-        let options = banks.map { self.options(for: $0, context) }
+        let fees = banks.map { RoundingPolicy.standard.round2(max(0, eftFees[$0.id] ?? 0)) }
+        let options = banks.indices.map { self.options(for: banks[$0], eftFee: fees[$0], context) }
         let order = segmentOrder(options)
         let choice = search(options, order: order, amount: context.amount)
         let deposits = fill(choice, options, order: order, amount: context.amount)?.deposits
@@ -68,7 +90,7 @@ nonisolated enum MaxPlanner {
         var unused: [MaxPlan.BankRef] = []
         for (bank, condition) in banks.enumerated() {
             guard let index = choice[bank], deposits[bank] > 0 else {
-                unused.append(reference(condition))
+                unused.append(reference(condition, eftFee: fees[bank]))
                 continue
             }
             allocations.append(allocation(condition, option: options[bank][index],
@@ -80,6 +102,7 @@ nonisolated enum MaxPlanner {
             amount: context.amount,
             nights: context.nights,
             bufferPercent: context.buffer.percentValue,
+            minimumProfit: context.minimumProfit,
             withholdingPercent: withholding.lines.reduce(Decimal(0)) { $0 + $1.rate.percentValue },
             allocations: allocations,
             unusedBanks: unused,
@@ -96,16 +119,19 @@ nonisolated enum MaxPlanner {
         var startWeekday: Weekday
         var withholding: WithholdingRule
         var buffer: Percentage
+        var minimumProfit: Money
     }
 
     /// Bir bankanın tek kademesinde yatırılabilecek aralık ve kazanç eğrisi.
     private nonisolated struct Option {
         var tier: MaxPlan.Tier?
         var idleRule: MaxPlan.IdleRule
-        /// Bu kademede olmak (ve kazanmak) için en az yatırılacak tutar.
+        /// Bu kademede olmak ve karı eşiğin üstünde tutmak için en az yatırılacak tutar.
         var minimum: Money
         /// `minimum`'daki N günlük net kazanç (motordan, kesin).
         var baseNet: Money
+        /// Bankanın EFT ücreti: seçenek seçilirse kardan bir kez düşülür.
+        var eftFee: Money
         /// `minimum`'dan sonraki parçalar, eğimi azalan sırada.
         var segments: [Segment]
     }
@@ -128,10 +154,11 @@ nonisolated enum MaxPlanner {
 
     // MARK: - Seçenekler
 
-    private static func options(for condition: BankCondition, _ context: Context) -> [Option] {
+    private static func options(for condition: BankCondition, eftFee: Money,
+                                _ context: Context) -> [Option] {
         guard case .tiered(let table) = condition.idleRequirement else {
-            return [option(condition, flat: condition, lower: 0, upper: nil, tier: nil, context)]
-                .compactMap { $0 }
+            return [option(condition, flat: condition, lower: 0, upper: nil, tier: nil,
+                           eftFee: eftFee, context)].compactMap { $0 }
         }
         return table.tiers.indices.compactMap { index in
             let tier = table.tiers[index]
@@ -143,11 +170,12 @@ nonisolated enum MaxPlanner {
             }
             return option(condition, flat: flat, lower: lower ?? 0, upper: tier.upperBound,
                           tier: MaxPlan.Tier(index: index, lowerBound: lower, upperBound: tier.upperBound),
-                          context)
+                          eftFee: eftFee, context)
         }
     }
 
-    /// Bir kademenin seçeneği; bu tutara ve vadeye sığmıyorsa nil.
+    /// Bir kademenin seçeneği; bu tutara ve vadeye sığmıyorsa ya da kademede
+    /// kar eşiği aşılamıyorsa nil.
     ///
     /// `flat`: kademenin şartı kademesiz hale getirilmiş koşul. Kademe içinde
     /// (sınır geçilmedikçe) asıl koşulla birebir aynı sonucu verir; eğim ölçümü
@@ -158,6 +186,7 @@ nonisolated enum MaxPlanner {
         lower: Money,
         upper: Money?,
         tier: MaxPlan.Tier?,
+        eftFee: Money,
         _ context: Context
     ) -> Option? {
         // En az: kademe alt sınırı, en az bakiye şartı ve sabit vadesiz şartı
@@ -180,6 +209,13 @@ nonisolated enum MaxPlanner {
             }
             maximum = top
         }
+
+        // EFT kuralı: en az, karın (net − EFT) eşiği aştığı ilk tutara çıkar.
+        guard let profitable = smallestProfitableDeposit(from: minimum, to: maximum ?? context.amount,
+                                                         flat, eftFee: eftFee, context) else {
+            return nil
+        }
+        minimum = profitable
 
         // Kırılma noktaları: en az → (limit kırılması) → en çok / sınırsız.
         var points = [minimum]
@@ -214,7 +250,7 @@ nonisolated enum MaxPlanner {
             segments[index].slope = slope
         }
         return Option(tier: tier, idleRule: idleRule(flat), minimum: minimum,
-                      baseNet: baseNet, segments: segments)
+                      baseNet: baseNet, eftFee: eftFee, segments: segments)
     }
 
     /// Sınırlı kademede (`upper` DIŞLAYICI) vade sonunda sınıra en az pay kalan
@@ -243,6 +279,38 @@ nonisolated enum MaxPlanner {
             }
         }
         return low
+    }
+
+    /// Karın (N günlük net kazanç − EFT) kar eşiğini AŞTIĞI en küçük yatırım,
+    /// `[minimum, maximum]` içinde, kuruş hassasiyetinde; `maximum`'da bile
+    /// aşmıyorsa nil. `flat` kademesiz olduğu için net kazanç tutarla azalmaz
+    /// (gecelik yuvarlama da tek yönlü), yüklem tek yönlüdür.
+    private static func smallestProfitableDeposit(
+        from minimum: Money,
+        to maximum: Money,
+        _ flat: BankCondition,
+        eftFee: Money,
+        _ context: Context
+    ) -> Money? {
+        let target = eftFee + context.minimumProfit
+        let isProfitable = { (deposit: Money) in
+            projection(deposit, flat, context).netInterest > target
+        }
+        guard minimum <= maximum, isProfitable(maximum) else { return nil }
+        if isProfitable(minimum) { return minimum }
+
+        // Değişmez: `low` eşiği aşmaz, `high` aşar.
+        var low = minimum
+        var high = maximum
+        while high - low > kurus {
+            let middle = floorToKurus((low + high) / 2)
+            if isProfitable(middle) {
+                high = middle
+            } else {
+                low = middle
+            }
+        }
+        return high
     }
 
     /// Vade sonunda sınır geçilmemiş ve sınıra en az pay kalmış mı? Bakiye hiç
@@ -280,8 +348,7 @@ nonisolated enum MaxPlanner {
     /// Tüm "banka başına bir seçenek ya da hiç" kombinasyonları, derinlik
     /// öncelikli; alt sınırlar toplamı tutarı aşan dallar budanır. Eşitlikte ilk
     /// bulunan kalır — "kullanma" önce denendiği için para gereksiz bölünmez.
-    /// En az tutarı 0 olan bir seçeneği varsa banka için "kullanma" denenmez: o
-    /// seçenek hiç doldurulmayarak aynı sonucu verir, doldurularak daha iyisini.
+    /// Seçilen banka EFT öder, bu yüzden "kullanma" her bankada denenir.
     private static func search(_ options: [[Option]], order: [SegmentRef], amount: Money) -> [Int?] {
         var choice = [Int?](repeating: nil, count: options.count)
         var best = choice
@@ -297,9 +364,7 @@ nonisolated enum MaxPlanner {
                 return
             }
             choice[bank] = nil
-            if !options[bank].contains(where: { $0.minimum == 0 }) {
-                visit(bank + 1, committed: committed)
-            }
+            visit(bank + 1, committed: committed)
             for index in options[bank].indices
             where committed + options[bank][index].minimum <= amount {
                 choice[bank] = index
@@ -311,9 +376,9 @@ nonisolated enum MaxPlanner {
         return best
     }
 
-    /// Bir kombinasyonun tahmini toplam net kazancı ve bankalara yatırılacak
-    /// tutarlar. Önce alt sınırlar yatırılır; kalan para eğimi en yüksek
-    /// parçadan başlayarak doldurulur. Alt sınırlar tutarı aşıyorsa nil.
+    /// Bir kombinasyonun tahmini toplam karı (net kazanç − EFT) ve bankalara
+    /// yatırılacak tutarlar. Önce alt sınırlar yatırılır; kalan para eğimi en
+    /// yüksek parçadan başlayarak doldurulur. Alt sınırlar tutarı aşıyorsa nil.
     private static func fill(
         _ choice: [Int?],
         _ options: [[Option]],
@@ -325,9 +390,10 @@ nonisolated enum MaxPlanner {
         var remaining = amount
         for (bank, index) in choice.enumerated() {
             guard let index else { continue }
-            deposits[bank] = options[bank][index].minimum
-            value += options[bank][index].baseNet
-            remaining -= options[bank][index].minimum
+            let option = options[bank][index]
+            deposits[bank] = option.minimum
+            value += option.baseNet - option.eftFee
+            remaining -= option.minimum
         }
         guard remaining >= 0 else { return nil }
 
@@ -366,7 +432,7 @@ nonisolated enum MaxPlanner {
         order: [SegmentRef],
         _ context: Context
     ) -> MaxPlan.Baseline? {
-        var best: (bank: Int, value: Decimal, deposit: Money)?
+        var best: (bank: Int, option: Int, value: Decimal, deposit: Money)?
         for bank in banks.indices {
             for index in options[bank].indices {
                 var choice = [Int?](repeating: nil, count: banks.count)
@@ -374,14 +440,15 @@ nonisolated enum MaxPlanner {
                 guard let filled = fill(choice, options, order: order, amount: context.amount),
                       filled.deposits[bank] > 0,
                       best.map({ filled.value > $0.value }) ?? true else { continue }
-                best = (bank, filled.value, filled.deposits[bank])
+                best = (bank, index, filled.value, filled.deposits[bank])
             }
         }
         guard let best else { return nil }
         return MaxPlan.Baseline(
             bankName: banks[best.bank].name,
             deposit: best.deposit,
-            netInterest: projection(best.deposit, banks[best.bank], context).netInterest
+            netInterest: projection(best.deposit, banks[best.bank], context).netInterest,
+            eftFee: options[best.bank][best.option].eftFee
         )
     }
 
@@ -415,15 +482,16 @@ nonisolated enum MaxPlanner {
             grossInterest: result.totalGrossInterest,
             deductions: result.totalDeductions,
             netInterest: result.netInterest,
+            eftFee: option.eftFee,
             headroom: headroom,
             oneDayNet: oneDayNet
         )
     }
 
-    private static func reference(_ condition: BankCondition) -> MaxPlan.BankRef {
+    private static func reference(_ condition: BankCondition, eftFee: Money) -> MaxPlan.BankRef {
         MaxPlan.BankRef(id: condition.id, name: condition.name,
                         annualRatePercent: annualRatePercent(condition),
-                        rateIsNet: condition.rateBasis == .net)
+                        rateIsNet: condition.rateBasis == .net, eftFee: eftFee)
     }
 
     private static func annualRatePercent(_ condition: BankCondition) -> Decimal {

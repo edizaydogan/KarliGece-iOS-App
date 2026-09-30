@@ -40,6 +40,9 @@ struct BankConditionDraft: Identifiable, Hashable {
     var tierDrafts: [TierDraft]
     var minTotalBalanceText: String
     var maxInterestBearingText: String
+    /// EFT ücreti (₺). Faiz koşulu değildir, motora girmez; yalnız Max
+    /// planlayıcısı kullanır (bankaya para ayrılırsa kazançtan bir kez düşer).
+    var eftFeeText: String
 
     init(
         id: UUID = UUID(),
@@ -51,7 +54,8 @@ struct BankConditionDraft: Identifiable, Hashable {
         idleFixedAmountText: String = "",
         tierDrafts: [TierDraft] = [],
         minTotalBalanceText: String = "",
-        maxInterestBearingText: String = ""
+        maxInterestBearingText: String = "",
+        eftFeeText: String = ""
     ) {
         self.id = id
         self.name = name
@@ -63,6 +67,12 @@ struct BankConditionDraft: Identifiable, Hashable {
         self.tierDrafts = tierDrafts
         self.minTotalBalanceText = minTotalBalanceText
         self.maxInterestBearingText = maxInterestBearingText
+        self.eftFeeText = eftFeeText
+    }
+
+    /// Ayrıştırılmış EFT ücreti; boş, geçersiz ya da negatifse 0.
+    var eftFee: Money {
+        max(0, DecimalInputParser.parse(eftFeeText) ?? 0)
     }
 
     /// Yeni banka için boş taslak (AppState'in başlangıç bankası).
@@ -86,7 +96,8 @@ struct BankConditionDraft: Identifiable, Hashable {
 
     /// Taslağı motor tipine çevirir. Ham metinler locale-agnostik ayrıştırılır;
     /// geçersiz/boş sayısal alanlar güvenli varsayılana düşer (motor zaten toplam
-    /// fonksiyon olduğu için tanılamayı kendisi üretir).
+    /// fonksiyon olduğu için tanılamayı kendisi üretir). EFT ücreti koşula
+    /// girmez (bkz. `eftFee`).
     func makeCondition() -> BankCondition {
         let rate = Percentage.percent(DecimalInputParser.parse(annualRateText) ?? 0)
 

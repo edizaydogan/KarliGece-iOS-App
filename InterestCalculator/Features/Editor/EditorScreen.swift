@@ -17,6 +17,11 @@ struct EditorScreen: View {
 
     private let withholdingNote = "Kanuni taban oran. Geçici kararlarla değişmiş olabilir; bankanızın ekstresinden veya güncel mevzuattan doğrulayın."
 
+    private var eftNote: String {
+        let threshold = MaxPlanner.defaultMinimumProfit.grouped(fractionDigits: 0...2)
+        return "EFT ücreti yalnız Max planında kullanılır: bu bankaya para ayrılırsa kazancından bir kez düşülür. EFT düşüldükten sonra kazancı \(threshold) ₺'yi geçmeyen bankaya para ayrılmaz."
+    }
+
     var body: some View {
         @Bindable var state = state
 
@@ -67,7 +72,7 @@ struct EditorScreen: View {
             .listRowBackground(Color.drift)
 
             if let index = state.selectedBankIndex {
-                Section("Seçili banka") {
+                Section {
                     LabeledContent("Ad") {
                         TextField("Banka adı", text: $state.banks[index].name)
                             .multilineTextAlignment(.trailing)
@@ -83,6 +88,15 @@ struct EditorScreen: View {
                         Text("Net").tag(RateBasis.net)
                     }
                     .pickerStyle(.segmented)
+                    LabeledContent("EFT ücreti") {
+                        DecimalTextField(unit: "₺", text: $state.banks[index].eftFeeText,
+                                         field: .eftFee, focused: $focused, kind: .money,
+                                         identifier: "eftFeeField")
+                    }
+                } header: {
+                    Text("Seçili banka")
+                } footer: {
+                    Text(eftNote).foregroundStyle(.slate)
                 }
                 .listRowBackground(Color.drift)
 

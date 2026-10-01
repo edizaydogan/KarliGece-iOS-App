@@ -49,6 +49,8 @@ struct DecimalTextField: View {
 
     private func normalize() {
         guard let value = DecimalInputParser.parse(text) else { return }
-        text = kind.normalized(value)
+        let normalized = kind.normalized(value)
+        debugPrint("[DecimalTextField] \(field) alanı odaktan çıkınca biçimlendirildi: \(text) → \(normalized).")
+        text = normalized
     }
 }

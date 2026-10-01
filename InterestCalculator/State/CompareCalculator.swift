@@ -31,7 +31,7 @@ nonisolated enum CompareCalculator {
         withholding: WithholdingRule,
         startWeekday: Weekday
     ) -> [[InterestResult]] {
-        conditions.map { condition in
+        let table = conditions.map { condition in
             horizons.map { nights in
                 CompoundingEngine.project(
                     initialBalance: balance,
@@ -42,6 +42,8 @@ nonisolated enum CompareCalculator {
                 )
             }
         }
+        debugPrint("[CompareCalculator] Karşılaştır tablosu hesaplandı: \(conditions.count) banka × \(horizons.count) vade, tutar \(balance) ₺.")
+        return table
     }
 
     /// Bir vade satırının sıralaması. En yüksek net > 0 ve en az bir hücre ondan

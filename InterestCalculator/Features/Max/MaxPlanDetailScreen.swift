@@ -54,6 +54,9 @@ struct MaxPlanDetailScreen: View {
         .navigationTitle("Plan")
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("maxDetailRoot")
+        .onAppear {
+            debugPrint("[MaxPlanDetailScreen] Plan detayı açıldı: \(plan.amount) ₺, \(plan.nights) gün, toplam kar \(plan.totalProfit) ₺.")
+        }
     }
 
     // MARK: - Özet

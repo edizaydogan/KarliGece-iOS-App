@@ -26,8 +26,12 @@ struct RootTabView: View {
             }
         }
         .onChange(of: scenePhase) { _, phase in
+            debugPrint("[RootTabView] Uygulamanın sahne durumu değişti: \(phase).")
             // Uygulama etkin olmaktan çıkınca (arka plan/inaktif) tüm oturumu kaydet.
             if phase != .active { state.save() }
+        }
+        .onChange(of: state.selectedTab) { _, tab in
+            debugPrint("[RootTabView] Sekme değişti: \(tab).")
         }
     }
 }

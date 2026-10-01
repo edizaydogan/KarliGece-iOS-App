@@ -67,6 +67,7 @@ struct MaxScreen: View {
             // kullanıcı boş tutara kilitlenmesin.
             if balanceText == nil, !state.balanceText.isEmpty {
                 balanceText = state.balanceText
+                debugPrint("[MaxScreen] Tutar Düzenle'den bir kez tohumlandı: \(state.balanceText).")
             }
         }
     }
@@ -355,6 +356,7 @@ struct MaxScreen: View {
         let withholding = state.withholdingRule
         let start = AccrualCalendar.today()
         let weekday = AccrualCalendar.weekday(for: start)
+        debugPrint("[MaxScreen] Maksimize Et'e basıldı: \(amount) ₺, \(days) gün, \(banks.count) banka için plan hesaplanıyor.")
         Task {
             // Uzun vadede binlerce motor çağrısı: ana iş parçacığını bloklamasın.
             let plan = await Task.detached(priority: .userInitiated) {

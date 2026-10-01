@@ -98,7 +98,7 @@ nonisolated enum MaxPlanner {
         }
         let deposited = allocations.reduce(Money(0)) { $0 + $1.deposit }
 
-        return MaxPlan(
+        let result = MaxPlan(
             amount: context.amount,
             nights: context.nights,
             bufferPercent: context.buffer.percentValue,
@@ -109,6 +109,8 @@ nonisolated enum MaxPlanner {
             unallocated: context.amount - deposited,
             bestSingleBank: bestSingleBank(banks, options, order: order, context)
         )
+        debugPrint("[MaxPlanner] Plan hesaplandı: \(result.amount) ₺'nin \(result.totalDeposited) ₺'si \(result.allocations.count) bankaya dağıtıldı, dağıtılmayan \(result.unallocated) ₺, \(result.nights) günlük toplam kar \(result.totalProfit) ₺.")
+        return result
     }
 
     // MARK: - Model

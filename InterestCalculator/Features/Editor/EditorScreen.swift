@@ -51,6 +51,7 @@ struct EditorScreen: View {
                 ForEach(state.banks) { bank in
                     Button {
                         state.selectedBankID = bank.id
+                        debugPrint("[EditorScreen] Düzenlenecek banka seçildi: \(state.displayName(for: bank)).")
                     } label: {
                         HStack {
                             Text(bank.name.isEmpty ? "Adsız banka" : bank.name)
@@ -109,6 +110,7 @@ struct EditorScreen: View {
                     }
                     .pickerStyle(.menu)
                     .onChange(of: state.banks[index].idleKind) { _, newKind in
+                        debugPrint("[EditorScreen] Seçili bankanın vadesiz şart türü \(newKind) oldu.")
                         if newKind == .tiered { state.seedTiers(forBankAt: index) }
                     }
 

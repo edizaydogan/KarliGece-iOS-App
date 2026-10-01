@@ -31,7 +31,10 @@ final class AppState {
     static let maxHistoryLimit = 50
 
     init(loadPersisted: Bool = true) {
-        guard loadPersisted, !Self.isUITesting, let snapshot = SessionStore.load() else { return }
+        guard loadPersisted, !Self.isUITesting, let snapshot = SessionStore.load() else {
+            debugPrint("[AppState] Kayıtlı oturum kullanılmadı, uygulama varsayılan durumla başladı.")
+            return
+        }
         balanceText = snapshot.balanceText
         withholdingText = snapshot.withholdingText
         selectedBankID = snapshot.selectedBankID
@@ -41,11 +44,15 @@ final class AppState {
         // Başlangıç DAİMA bugün; kayıtlı gün sayısı bugünün gününe göre yeniden
         // normalize edilir (bitiş hafta sonuna düşmesin).
         nights = AccrualCalendar.normalizedNights(start: startDate, requested: snapshot.nights)
+        debugPrint("[AppState] Kayıtlı oturum geri yüklendi: \(banks.count) banka, \(maxHistory.count) Max kaydı, vade \(snapshot.nights) → \(nights) gece.")
     }
 
     /// Tüm oturumu UserDefaults'a yazar. Uygulama arka plana geçince çağrılır.
     func save() {
-        guard !Self.isUITesting else { return }
+        guard !Self.isUITesting else {
+            debugPrint("[AppState] UI testi çalıştığı için oturum kaydı atlandı.")
+            return
+        }
         SessionStore.save(SessionSnapshot(
             balanceText: balanceText,
             withholdingText: withholdingText,
@@ -96,13 +103,15 @@ final class AppState {
               let draft = selectedBank else {
             return nil
         }
-        return CompoundingEngine.project(
+        let projected = CompoundingEngine.project(
             initialBalance: balance,
             startWeekday: AccrualCalendar.weekday(for: startDate),
             nights: nights,
             condition: draft.makeCondition(),
             withholding: withholdingRule
         )
+        debugPrint("[AppState] Özet sonucu hesaplandı: \(displayName(for: draft)), \(balance) ₺, \(nights) gece, net \(projected.netInterest) ₺.")
+        return projected
     }
 
     /// Bankanın gösterim adı. Adsızsa listedeki sırasıyla "Adsız banka N" —
@@ -171,12 +180,14 @@ final class AppState {
     /// düşerse Pazartesi'ye çekilir; gün sayısı gerçek aralığa göre güncellenir.
     func setDayCount(_ requested: Int) {
         nights = AccrualCalendar.normalizedNights(start: startDate, requested: requested)
+        debugPrint("[AppState] Gün sayısı \(requested) girildi, vade \(nights) gece olarak ayarlandı.")
     }
 
     /// Adım "+": bitişi bir sonraki iş gününe taşır (hafta sonunu ileri atlar,
     /// Cuma → Pazartesi).
     func incrementDayCount() {
         nights = AccrualCalendar.nextBusinessNights(start: startDate, after: nights)
+        debugPrint("[AppState] Vade bir sonraki iş gününe uzatıldı: \(nights) gece.")
     }
 
     /// Adım "−": bitişi bir önceki iş gününe taşır (hafta sonunu GERİ atlar,
@@ -184,6 +195,9 @@ final class AppState {
     func decrementDayCount() {
         if let previous = AccrualCalendar.previousBusinessNights(start: startDate, before: nights) {
             nights = previous
+            debugPrint("[AppState] Vade bir önceki iş gününe kısaltıldı: \(nights) gece.")
+        } else {
+            debugPrint("[AppState] Daha kısa geçerli vade olmadığı için vade \(nights) gecede kaldı.")
         }
     }
 
@@ -192,6 +206,7 @@ final class AppState {
     func setEndDate(_ date: Date) {
         let snapped = AccrualCalendar.snappedOffWeekend(date)
         nights = max(1, AccrualCalendar.nights(from: startDate, to: snapped))
+        debugPrint("[AppState] Bitiş tarihi \(snapped.formatted(date: .numeric, time: .omitted)) olarak ayarlandı, vade \(nights) gece.")
     }
 
     /// Kullanıcı başlangıç gününü değiştirdi. Gün sayısı korunur ama yeni
@@ -199,6 +214,7 @@ final class AppState {
     func setStartDate(_ date: Date) {
         startDate = AccrualCalendar.startOfDay(date)
         nights = AccrualCalendar.normalizedNights(start: startDate, requested: nights)
+        debugPrint("[AppState] Başlangıç tarihi \(startDate.formatted(date: .numeric, time: .omitted)) olarak ayarlandı, vade \(nights) geceye yeniden normalize edildi.")
     }
 
     // MARK: - Mutasyonlar
@@ -207,6 +223,7 @@ final class AppState {
         let draft = BankConditionDraft.blankDefault
         banks.append(draft)
         selectedBankID = draft.id
+        debugPrint("[AppState] Yeni boş banka eklendi ve seçildi, toplam \(banks.count) banka.")
     }
 
     func deleteBanks(at offsets: IndexSet) {
@@ -216,6 +233,7 @@ final class AppState {
         if let id = selectedBankID, banks.contains(where: { $0.id == id }) == false {
             selectedBankID = banks.first?.id
         }
+        debugPrint("[AppState] \(offsets.count) banka silindi, kalan \(banks.count) banka.")
     }
 
     /// Kademeli şarta ilk geçişte örnek yapıyı doldur (uçurum örneği).
@@ -225,6 +243,7 @@ final class AppState {
             .init(upperBoundText: "50.000", amountText: "5.000"),
             .init(upperBoundText: "", amountText: "10.000"),   // "ve üzeri" yakalayıcı
         ]
+        debugPrint("[AppState] Kademeli şart için örnek kademeler dolduruldu: \(displayName(for: banks[index])).")
     }
 
     /// Yeni kademeyi "ve üzeri" yakalayıcının HEMEN ÖNÜNE, akıllı varsayılanla
@@ -241,6 +260,7 @@ final class AppState {
             tiers.insert(.init(upperBoundText: boundText, amountText: ""), at: insertAt)
         }
         banks[index].tierDrafts = tiers
+        debugPrint("[AppState] Kademe eklendi: \(displayName(for: banks[index])), toplam \(tiers.count) kademe.")
     }
 
     func deleteTiers(fromBankAt index: Int, at offsets: IndexSet) {
@@ -248,6 +268,7 @@ final class AppState {
         for tierIndex in offsets.sorted(by: >) where banks[index].tierDrafts.indices.contains(tierIndex) {
             banks[index].tierDrafts.remove(at: tierIndex)
         }
+        debugPrint("[AppState] \(offsets.count) kademe silindi: \(displayName(for: banks[index])), kalan \(banks[index].tierDrafts.count) kademe.")
     }
 
     /// Yeni Max planını geçmişin başına ekler; sınırı aşan en eski kayıtlar düşer.
@@ -257,11 +278,14 @@ final class AppState {
         if maxHistory.count > Self.maxHistoryLimit {
             maxHistory.removeLast(maxHistory.count - Self.maxHistoryLimit)
         }
+        debugPrint("[AppState] Max planı geçmişin başına eklendi, geçmişte \(maxHistory.count) kayıt var.")
     }
 
     /// Max geçmişini tümüyle siler (geri alınamaz; onayı ekran ister).
     func clearMaxHistory() {
+        let removed = maxHistory.count
         maxHistory.removeAll()
+        debugPrint("[AppState] Max geçmişi temizlendi, \(removed) kayıt silindi.")
     }
 
     /// Önizleme fixture'ı — her #Preview bununla sarılır, yoksa @Environment crash eder.

@@ -52,6 +52,7 @@ struct CompareScreen: View {
                         // giren kullanıcı boş tutara kilitlenmesin.
                         if balanceText == nil, !state.balanceText.isEmpty {
                             balanceText = state.balanceText
+                            debugPrint("[CompareScreen] Tutar Düzenle'den bir kez tohumlandı: \(state.balanceText).")
                         }
                     }
             }
@@ -61,6 +62,7 @@ struct CompareScreen: View {
             // @State'i sekme değişimlerinde korur; sonraki görünüşler tohumlamaz.
             if selection == nil {
                 selection = CompareSelection(seed: state.selectedBank?.id)
+                debugPrint("[CompareScreen] 1. sütun Özet'in seçili bankasıyla bir kez tohumlandı: \(state.selectedBank.map { state.displayName(for: $0) } ?? "banka yok").")
             }
         }
         // `.contain`: kök kimliği çocuklara yayılıp iç kimlikleri ezmesin.
@@ -153,6 +155,7 @@ struct CompareScreen: View {
                 var updated = current
                 updated.setColumnCount(newCount)
                 selection = updated
+                debugPrint("[CompareScreen] Karşılaştırılan banka sayısı \(updated.columnCount) olarak ayarlandı.")
             }
         )
         return Picker("Karşılaştırılacak banka sayısı", selection: count) {
@@ -215,6 +218,8 @@ struct CompareScreen: View {
                 var updated = current
                 updated.select(id, forColumn: column, in: bankIDs)
                 selection = updated
+                let picked = state.banks.first(where: { $0.id == id }).map { state.displayName(for: $0) } ?? "?"
+                debugPrint("[CompareScreen] \(column + 1). sütunun bankası değiştirildi: \(picked).")
             }
         )
         return Menu {

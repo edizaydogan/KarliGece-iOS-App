@@ -114,6 +114,11 @@ nonisolated struct MaxPlan: Hashable, Sendable, Codable {
     var totalEftFees: Money { allocations.reduce(0) { $0 + ($1.eftFee ?? 0) } }
     /// Toplam kar: net kazanç − EFT ücretleri. Planlayıcının en yükselttiği değer.
     var totalProfit: Money { allocations.reduce(0) { $0 + $1.profit } }
+    /// Toplam karın gün ortalaması (`totalProfit / nights`), kuruşa yuvarlanmış.
+    var averageDailyProfit: Money {
+        guard nights > 0 else { return 0 }
+        return RoundingPolicy.standard.round2(totalProfit / Decimal(nights))
+    }
 }
 
 /// Max geçmişinin bir satırı: hesap anı + planın kendisi.

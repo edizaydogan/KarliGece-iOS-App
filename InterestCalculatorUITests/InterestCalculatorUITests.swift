@@ -248,6 +248,7 @@ final class InterestCalculatorUITests: XCTestCase {
         // Detay açıldı.
         XCTAssertTrue(element(app, "maxDetailRoot").waitForExistence(timeout: 10))
         XCTAssertTrue(element(app, "maxDetailTotalNet").exists)
+        XCTAssertTrue(element(app, "maxDetailTotalNet").label.contains("Günlük ortalama"))
         XCTAssertTrue(element(app, "maxAllocation_0").exists)
 
         // Geri: geçmişte tarihli satır var, boş durum yok.

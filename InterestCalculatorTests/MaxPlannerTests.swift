@@ -118,6 +118,7 @@ struct MaxPlannerTests {
         // EFT'siz: kar = net kazanç; eşik plana kaydedilir.
         #expect(result.totalEftFees == 0)
         #expect(result.totalProfit == d("1326.66"))
+        #expect(result.averageDailyProfit == d("132.67"))   // 132,666 → yarım yukarı
         #expect(result.minimumProfit == 20)
     }
 
@@ -354,6 +355,7 @@ struct MaxPlannerTests {
         #expect(result.totalNet == d("1326.66"))
         #expect(result.totalEftFees == 7)
         #expect(result.totalProfit == d("1319.66"))
+        #expect(result.averageDailyProfit == d("131.97"))   // EFT düşülmüş kar / 10
 
         // Tek bankada en iyisi de kendi EFT'sini öder: 1.321,05 − 2.
         let baseline = try #require(result.bestSingleBank)
@@ -455,6 +457,7 @@ struct MaxPlannerTests {
         #expect(zero.allocations.isEmpty)
         #expect(zero.unallocated == 0)
         #expect(zero.totalNet == 0)
+        #expect(zero.averageDailyProfit == 0)
 
         let noBanks = plan([], amount: d("1000"))
         #expect(noBanks.allocations.isEmpty)

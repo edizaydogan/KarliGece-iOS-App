@@ -2,9 +2,9 @@
 //  MaxPlanDetailScreen.swift
 //  InterestCalculator
 //
-//  Max planının detayı: toplam net kazanç (EFT düşülmüş), banka banka yatırılacak
-//  tutar, kademe payı ve EFT ücreti, dağıtılmayan tutar, para ayrılmayan bankalar
-//  ve toplamlar.
+//  Max planının detayı: toplam net kazanç (EFT düşülmüş) ve günlük ortalaması,
+//  banka banka yatırılacak tutar, kademe payı ve EFT ücreti, dağıtılmayan tutar,
+//  para ayrılmayan bankalar ve toplamlar.
 //  Yalnız kayıttaki değerleri gösterir — hesap YAPMAZ; bankalar sonradan değişse
 //  de hesap anındaki plan görünür.
 //
@@ -75,6 +75,13 @@ struct MaxPlanDetailScreen: View {
             Text("\(plan.nights) günlük toplam net kazanç")
                 .font(.subheadline)
                 .foregroundStyle(.slate)
+            // Tek günlük planda ortalama toplamla aynı; kazanç yoksa anlamsız.
+            if plan.nights > 1, plan.totalProfit > 0 {
+                Text("Günlük ortalama \(moneyText(plan.averageDailyProfit))")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.ink)
+                    .monospacedDigit()
+            }
             if plan.totalEftFees > 0 {
                 Text("\(moneyText(plan.totalEftFees)) EFT ücreti düşüldü")
                     .font(.footnote)

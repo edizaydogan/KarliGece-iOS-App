@@ -18,6 +18,11 @@ struct SessionSnapshot: Codable {
     var banks: [BankConditionDraft]
     /// Max geçmişi. Opsiyonel: bu alandan önce kaydedilmiş oturumlar da çözülsün.
     var maxHistory: [MaxPlanRecord]?
+    /// Profil: kişisel bilgiler, görünüm tercihi ve Bakiyelerim. Opsiyonel: bu
+    /// alanlardan önce kaydedilmiş oturumlar da çözülsün.
+    var profile: UserProfile?
+    var appearance: AppAppearance?
+    var holdings: [Holding]?
 }
 
 enum SessionStore {
@@ -42,7 +47,7 @@ enum SessionStore {
             return
         }
         UserDefaults.standard.set(data, forKey: key)
-        debugPrint("[SessionStore] Oturum kaydedildi: \(snapshot.banks.count) banka, \(snapshot.maxHistory?.count ?? 0) Max kaydı, \(data.count) bayt.")
+        debugPrint("[SessionStore] Oturum kaydedildi: \(snapshot.banks.count) banka, \(snapshot.maxHistory?.count ?? 0) Max kaydı, \(snapshot.holdings?.count ?? 0) bakiye, \(data.count) bayt.")
     }
 
     static func clear() {

@@ -58,6 +58,69 @@ final class InterestCalculatorUITests: XCTestCase {
 
         app.tabBars.buttons["Max"].tap()
         XCTAssertTrue(element(app, "maxRoot").waitForExistence(timeout: 5))
+
+        app.tabBars.buttons["Profil"].tap()
+        XCTAssertTrue(element(app, "profileRoot").waitForExistence(timeout: 5))
+    }
+
+    /// Profil → Bakiyelerim: bakiye eklenir, listede ve toplamda görünür, detayı
+    /// açılır; silme onay ister. Değerler assert EDİLMEZ (işletme birim testlerinde).
+    @MainActor
+    func testProfileHoldingAddOpenAndDelete() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitesting"]   // kalıcılığı atla: bakiye listesi boş başlar
+        app.launch()
+
+        // Düzenle'de bankaya oran (bakiye bu bankanın koşullarıyla işler).
+        app.tabBars.buttons["Düzenle"].tap()
+        let rate = app.textFields["rateField"]
+        XCTAssertTrue(rate.waitForExistence(timeout: 5))
+        rate.tap()
+        rate.typeText("45")
+        app.buttons["Bitti"].firstMatch.tap()
+
+        // Profil → Bakiyelerim: boş.
+        app.tabBars.buttons["Profil"].tap()
+        let holdingsRow = element(app, "profileHoldingsRow")
+        XCTAssertTrue(holdingsRow.waitForExistence(timeout: 5))
+        holdingsRow.tap()
+        XCTAssertTrue(element(app, "holdingsEmpty").waitForExistence(timeout: 5))
+
+        // Bakiye ekle: tutar girilmeden Ekle kapalı.
+        app.buttons["holdingsAddButton"].tap()
+        let save = app.buttons["holdingSaveButton"]
+        XCTAssertTrue(save.waitForExistence(timeout: 5))
+        XCTAssertFalse(save.isEnabled)
+        let balance = app.textFields["holdingBalanceField"]
+        balance.tap()
+        balance.typeText("100000")
+        XCTAssertTrue(save.isEnabled)
+        save.tap()
+
+        // Liste: kayıt ve toplam geldi, boş durum gitti.
+        XCTAssertTrue(element(app, "holdingRow_0").waitForExistence(timeout: 5))
+        XCTAssertTrue(element(app, "holdingsTotal").exists)
+        XCTAssertFalse(element(app, "holdingsEmpty").exists)
+
+        // Detay açılır.
+        element(app, "holdingRow_0").tap()
+        XCTAssertTrue(element(app, "holdingDetailBalance").waitForExistence(timeout: 5))
+
+        // Sil: Vazgeç kaydı korur, onay siler ve listeye döner.
+        let delete = app.buttons["holdingDeleteButton"]
+        XCTAssertTrue(delete.waitForExistence(timeout: 5))
+        delete.tap()
+        let cancel = app.buttons["Vazgeç"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+        cancel.tap()
+        XCTAssertTrue(element(app, "holdingDetailBalance").exists)
+
+        delete.tap()
+        let confirm = app.buttons["Kaydı Sil"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        confirm.tap()
+        XCTAssertTrue(element(app, "holdingsEmpty").waitForExistence(timeout: 5))
+        XCTAssertFalse(element(app, "holdingRow_0").exists)
     }
 
     @MainActor

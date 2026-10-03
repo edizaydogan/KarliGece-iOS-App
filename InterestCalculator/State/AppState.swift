@@ -27,6 +27,14 @@ final class AppState {
     /// Max geçmişi, en yeni başta; en fazla `maxHistoryLimit` kayıt. Oturumla
     /// birlikte kaydedilir.
     var maxHistory: [MaxPlanRecord] = []
+    /// Profil bilgileri (ad, soyad).
+    var profile = UserProfile()
+    /// Renk düzeni tercihi; `.system` cihazı izler.
+    var appearance: AppAppearance = .system
+    /// Profil → Bakiyelerim: bankalardaki gerçek bakiyeler, Düzenle'deki sırayla
+    /// değil eklenme sırasıyla. Her açılışta valörü gelen faiz eklenir
+    /// (`accrueHoldings`); oturumla birlikte kaydedilir.
+    var holdings: [Holding] = []
 
     static let maxHistoryLimit = 50
 
@@ -41,10 +49,15 @@ final class AppState {
         selectedTab = snapshot.selectedTab
         banks = snapshot.banks
         maxHistory = snapshot.maxHistory ?? []
+        profile = snapshot.profile ?? UserProfile()
+        appearance = snapshot.appearance ?? .system
+        holdings = snapshot.holdings ?? []
         // Başlangıç DAİMA bugün; kayıtlı gün sayısı bugünün gününe göre yeniden
         // normalize edilir (bitiş hafta sonuna düşmesin).
         nights = AccrualCalendar.normalizedNights(start: startDate, requested: snapshot.nights)
-        debugPrint("[AppState] Kayıtlı oturum geri yüklendi: \(banks.count) banka, \(maxHistory.count) Max kaydı, vade \(snapshot.nights) → \(nights) gece.")
+        debugPrint("[AppState] Kayıtlı oturum geri yüklendi: \(banks.count) banka, \(maxHistory.count) Max kaydı, \(holdings.count) bakiye, vade \(snapshot.nights) → \(nights) gece.")
+        // Uygulama açılışı: son açılıştan bu yana valörü gelen faiz eklenir.
+        accrueHoldings()
     }
 
     /// Tüm oturumu UserDefaults'a yazar. Uygulama arka plana geçince çağrılır.
@@ -60,7 +73,10 @@ final class AppState {
             selectedBankID: selectedBankID,
             selectedTab: selectedTab,
             banks: banks,
-            maxHistory: maxHistory
+            maxHistory: maxHistory,
+            profile: profile,
+            appearance: appearance,
+            holdings: holdings
         ))
     }
 
@@ -286,6 +302,118 @@ final class AppState {
         let removed = maxHistory.count
         maxHistory.removeAll()
         debugPrint("[AppState] Max geçmişi temizlendi, \(removed) kayıt silindi.")
+    }
+
+    // MARK: - Profil → Bakiyelerim
+
+    /// Kaydın bağlı olduğu banka; Düzenle'den silinmişse nil (faiz işlemez).
+    func bank(for holding: Holding) -> BankConditionDraft? {
+        banks.first { $0.id == holding.bankID }
+    }
+
+    /// Kaydın gösterim adı: banka duruyorsa güncel adı, silinmişse son bilinen adı.
+    func displayName(for holding: Holding) -> String {
+        bank(for: holding).map { displayName(for: $0) } ?? holding.bankName
+    }
+
+    /// Bakiyelerim'deki toplam.
+    var totalHoldingsBalance: Money {
+        holdings.reduce(0) { $0 + $1.balance }
+    }
+
+    /// Henüz bakiyesi girilmemiş bankalar (her bankada en fazla bir kayıt).
+    var banksWithoutHolding: [BankConditionDraft] {
+        banks.filter { bank in !holdings.contains { $0.bankID == bank.id } }
+    }
+
+    /// Her kaydı bugüne işletir: son valör gününden bu yana valörü gelen net faiz,
+    /// bağlı bankanın Düzenle'deki koşulları ve stopajla bakiyeye eklenir. Aynı
+    /// gün tekrar çağrılırsa hiçbir şey eklemez. Uygulama açılışında, öne
+    /// gelince ve açıkken gün dönünce çağrılır; kayıt oturumla birlikte (arka
+    /// plana geçerken) yapılır.
+    func accrueHoldings(today: Date = Date()) {
+        let day = AccrualCalendar.day(for: today)
+        let withholding = withholdingRule
+        for index in holdings.indices {
+            guard let bank = bank(for: holdings[index]) else {
+                debugPrint("[AppState] \(holdings[index].bankName) bakiyesinin bankası Düzenle'de yok, faiz eklenmedi.")
+                continue
+            }
+            // Kopya üzerinde işlet: değişiklik yoksa gözlemcileri boşuna tetikleme.
+            var holding = holdings[index]
+            holding.bankName = displayName(for: bank)
+            let added = HoldingLedger.accrue(&holding, condition: bank.makeCondition(),
+                                             withholding: withholding, through: day)
+            if holding != holdings[index] {
+                holdings[index] = holding
+            }
+            if !added.isEmpty {
+                let total = added.reduce(Money(0)) { $0 + $1.change }
+                debugPrint("[AppState] \(holding.bankName) bakiyesine \(added.count) valör gününün faizi eklendi: +\(total) ₺, bakiye \(holding.balance) ₺.")
+            }
+        }
+    }
+
+    /// Yeni gerçek bakiye; bakiye bugün itibarıyla geçerlidir. Bankada zaten
+    /// kayıt varsa ya da banka yoksa eklenmez.
+    @discardableResult
+    func addHolding(bankID: UUID, balance: Money, today: Date = Date()) -> UUID? {
+        guard let bank = banks.first(where: { $0.id == bankID }),
+              !holdings.contains(where: { $0.bankID == bankID }) else {
+            debugPrint("[AppState] Bakiye eklenmedi: banka yok ya da bankada zaten kayıt var.")
+            return nil
+        }
+        let holding = HoldingLedger.open(bankID: bankID, bankName: displayName(for: bank),
+                                         balance: balance, on: AccrualCalendar.day(for: today))
+        holdings.append(holding)
+        debugPrint("[AppState] Bakiye eklendi: \(holding.bankName), \(holding.balance) ₺.")
+        return holding.id
+    }
+
+    /// Kaydın bankasını ve/veya bakiyesini değiştirir. Bakiye değiştiyse yeni
+    /// tutar bugün itibarıyla geçerlidir ("eklenen faiz" sıfırlanır); yalnız
+    /// banka değiştiyse bakiye ve valör günü korunur. Seçilen bankada başka
+    /// kayıt varsa banka değişmez.
+    func updateHolding(_ id: UUID, bankID: UUID, balance: Money, today: Date = Date()) {
+        guard let index = holdings.firstIndex(where: { $0.id == id }) else { return }
+        if bankID != holdings[index].bankID,
+           let bank = banks.first(where: { $0.id == bankID }),
+           !holdings.contains(where: { $0.bankID == bankID }) {
+            holdings[index].bankID = bankID
+            holdings[index].bankName = displayName(for: bank)
+            debugPrint("[AppState] Bakiyenin bankası değişti: \(holdings[index].bankName).")
+        }
+        if balance != holdings[index].balance {
+            HoldingLedger.setBalance(&holdings[index], to: balance, on: AccrualCalendar.day(for: today))
+            debugPrint("[AppState] \(holdings[index].bankName) bakiyesi elle güncellendi: \(holdings[index].balance) ₺.")
+        }
+    }
+
+    func deleteHolding(_ id: UUID) {
+        holdings.removeAll { $0.id == id }
+        debugPrint("[AppState] Bakiye kaydı silindi, kalan \(holdings.count) kayıt.")
+    }
+
+    func deleteHoldings(at offsets: IndexSet) {
+        for index in offsets.sorted(by: >) where holdings.indices.contains(index) {
+            holdings.remove(at: index)
+        }
+        debugPrint("[AppState] \(offsets.count) bakiye kaydı silindi, kalan \(holdings.count) kayıt.")
+    }
+
+    /// Geçmiş ama valörü Pazartesi gelecek gecelerin net faizi (hafta sonu);
+    /// hafta içi ya da banka yoksa 0.
+    func pendingInterest(for holding: Holding, today: Date = Date()) -> Money {
+        guard let bank = bank(for: holding) else { return 0 }
+        return HoldingLedger.pendingInterest(holding, condition: bank.makeCondition(),
+                                             withholding: withholdingRule,
+                                             today: AccrualCalendar.day(for: today))
+    }
+
+    /// Mevcut bakiyenin bir gecelik net faizi; banka yoksa nil.
+    func nightlyNet(for holding: Holding) -> Money? {
+        guard let bank = bank(for: holding) else { return nil }
+        return HoldingLedger.nightlyNet(holding, condition: bank.makeCondition(), withholding: withholdingRule)
     }
 
     /// Önizleme fixture'ı — her #Preview bununla sarılır, yoksa @Environment crash eder.

@@ -29,6 +29,22 @@ enum AccrualCalendar {
         calendar.startOfDay(for: date)
     }
 
+    /// `CalendarDay`'in 0. günü: 2001-01-01 00:00 (Pazartesi), cihaz saat diliminde.
+    private static var dayZero: Date {
+        calendar.date(from: DateComponents(year: 2001, month: 1, day: 1)) ?? Date(timeIntervalSinceReferenceDate: 0)
+    }
+
+    /// Tarihin takvim günü (cihaz saat dilimine göre). Kalıcı kayıtlar günü
+    /// bununla tutar; saat dilimi değişse de kayıtlı gün kaymaz.
+    static func day(for date: Date) -> CalendarDay {
+        CalendarDay(index: calendar.dateComponents([.day], from: dayZero, to: startOfDay(date)).day ?? 0)
+    }
+
+    /// Takvim gününün 00:00'ı (gösterim için).
+    static func date(for day: CalendarDay) -> Date {
+        calendar.date(byAdding: .day, value: day.index, to: dayZero) ?? dayZero
+    }
+
     /// Foundation'ın 1=Pazar…7=Cumartesi düzenini motorun `Weekday`'ine çevirir.
     static func weekday(for date: Date) -> Weekday {
         switch calendar.component(.weekday, from: date) {

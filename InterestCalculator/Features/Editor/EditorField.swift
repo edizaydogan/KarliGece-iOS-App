@@ -18,4 +18,6 @@ enum EditorField: Hashable {
     case tierAmount(UUID)
     /// Max'ın gün sayısı alanı.
     case planDays
+    /// Profil → Bakiyelerim'in bakiye alanı.
+    case holdingBalance
 }

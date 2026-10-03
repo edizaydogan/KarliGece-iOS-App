@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct RootTabView: View {
     @Environment(AppState.self) private var state
@@ -24,14 +25,40 @@ struct RootTabView: View {
             Tab("Max", systemImage: "gauge.with.dots.needle.100percent", value: AppTab.max) {
                 MaxScreen()
             }
+            Tab("Profil", systemImage: "person.crop.circle", value: AppTab.profile) {
+                ProfileScreen()
+            }
         }
+        .preferredColorScheme(state.appearance.colorScheme)
         .onChange(of: scenePhase) { _, phase in
             debugPrint("[RootTabView] Uygulamanın sahne durumu değişti: \(phase).")
-            // Uygulama etkin olmaktan çıkınca (arka plan/inaktif) tüm oturumu kaydet.
-            if phase != .active { state.save() }
+            if phase == .active {
+                // Öne gelen uygulama günlerce arka planda kalmış olabilir: valörü
+                // gelen faiz Bakiyelerim'e eklenir (soğuk açılışı AppState.init yapar).
+                state.accrueHoldings()
+            } else {
+                // Uygulama etkin olmaktan çıkınca (arka plan/inaktif) tüm oturumu kaydet.
+                state.save()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            // Uygulama açıkken gün döndü (gece yarısı ya da saat/saat dilimi değişti).
+            debugPrint("[RootTabView] Gün ya da saat değişti, Bakiyelerim işletiliyor.")
+            state.accrueHoldings()
         }
         .onChange(of: state.selectedTab) { _, tab in
             debugPrint("[RootTabView] Sekme değişti: \(tab).")
+        }
+    }
+}
+
+extension AppAppearance {
+    /// `.system` için nil: cihazın ayarı geçerli olur.
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light:  return .light
+        case .dark:   return .dark
         }
     }
 }

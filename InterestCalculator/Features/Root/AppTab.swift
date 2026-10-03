@@ -6,5 +6,5 @@
 import Foundation
 
 enum AppTab: Hashable, Codable {
-    case summary, editor, compare, max
+    case summary, editor, compare, max, profile
 }

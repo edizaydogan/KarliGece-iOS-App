@@ -41,6 +41,26 @@ final class InterestCalculatorUITests: XCTestCase {
         element.tap()
     }
 
+    /// Onay penceresini onaylamadan kapatır. iOS 18 onayı alttan açılan bir
+    /// sayfada "Vazgeç" düğmesiyle gösterir. iOS 26+ kaynak düğmeye bağlı bir
+    /// popover açar ve iptal düğmesi çizmez; popover'ın dışına dokunmak kapatır.
+    @MainActor
+    private func cancelConfirmation(_ app: XCUIApplication, confirmTitle: String) {
+        let confirm = app.buttons[confirmTitle]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        let cancel = app.buttons["Vazgeç"]
+        if cancel.exists {
+            cancel.tap()
+        } else {
+            let region = app.otherElements["PopoverDismissRegion"]
+            XCTAssertTrue(region.exists)
+            // Popover ekranın alt yarısındaysa üst tarafa, değilse alt tarafa dokun.
+            let dy: CGFloat = app.popovers.firstMatch.frame.midY > region.frame.midY ? 0.2 : 0.8
+            region.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: dy)).tap()
+        }
+        XCTAssertTrue(confirm.waitForNonExistence(timeout: 5))
+    }
+
     @MainActor
     func testAllTabsOpen() throws {
         let app = XCUIApplication()
@@ -110,9 +130,7 @@ final class InterestCalculatorUITests: XCTestCase {
         let delete = app.buttons["holdingDeleteButton"]
         XCTAssertTrue(delete.waitForExistence(timeout: 5))
         delete.tap()
-        let cancel = app.buttons["Vazgeç"]
-        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
-        cancel.tap()
+        cancelConfirmation(app, confirmTitle: "Kaydı Sil")
         XCTAssertTrue(element(app, "holdingDetailBalance").exists)
 
         delete.tap()
@@ -343,9 +361,7 @@ final class InterestCalculatorUITests: XCTestCase {
 
         // Vazgeç: geçmiş korunur.
         clear.tap()
-        let cancel = app.buttons["Vazgeç"]
-        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
-        cancel.tap()
+        cancelConfirmation(app, confirmTitle: "Geçmişi Temizle")
         XCTAssertTrue(element(app, "maxHistoryRow_0").exists)
 
         // Onay: geçmiş boşalır, Temizle kaybolur.

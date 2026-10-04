@@ -31,6 +31,9 @@ final class AppState {
     var profile = UserProfile()
     /// Renk düzeni tercihi; `.system` cihazı izler.
     var appearance: AppAppearance = .system
+    /// Arayüz dili; kök görünüm `\.locale` ortamına verir. Cihaz dilinden
+    /// bağımsızdır, varsayılan Türkçe.
+    var language: AppLanguage = .turkish
     /// Profil → Bakiyelerim: bankalardaki gerçek bakiyeler, Düzenle'deki sırayla
     /// değil eklenme sırasıyla. Her açılışta valörü gelen faiz eklenir
     /// (`accrueHoldings`); oturumla birlikte kaydedilir.
@@ -51,6 +54,7 @@ final class AppState {
         maxHistory = snapshot.maxHistory ?? []
         profile = snapshot.profile ?? UserProfile()
         appearance = snapshot.appearance ?? .system
+        language = snapshot.language ?? .turkish
         holdings = snapshot.holdings ?? []
         // Başlangıç DAİMA bugün; kayıtlı gün sayısı bugünün gününe göre yeniden
         // normalize edilir (bitiş hafta sonuna düşmesin).
@@ -76,6 +80,7 @@ final class AppState {
             maxHistory: maxHistory,
             profile: profile,
             appearance: appearance,
+            language: language,
             holdings: holdings
         ))
     }
@@ -130,14 +135,15 @@ final class AppState {
         return projected
     }
 
-    /// Bankanın gösterim adı. Adsızsa listedeki sırasıyla "Adsız banka N" —
-    /// Karşılaştır menüsünde birden çok adsız banka ayırt edilebilsin.
+    /// Bankanın gösterim adı. Adsızsa listedeki sırasıyla "Adsız banka N"
+    /// (seçilen dilde) — Karşılaştır menüsünde birden çok adsız banka ayırt
+    /// edilebilsin.
     func displayName(for bank: BankConditionDraft) -> String {
         if !bank.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return bank.name
         }
         let position = (banks.firstIndex { $0.id == bank.id } ?? 0) + 1
-        return "Adsız banka \(position)"
+        return language.locale.localized("Adsız banka \(position)")
     }
 
     /// Max planlayıcının girdisi: kayıtlı bankaların motor koşulları, adları
@@ -255,9 +261,12 @@ final class AppState {
     /// Kademeli şarta ilk geçişte örnek yapıyı doldur (uçurum örneği).
     func seedTiers(forBankAt index: Int) {
         guard banks.indices.contains(index), banks[index].tierDrafts.isEmpty else { return }
+        let locale = language.locale
         banks[index].tierDrafts = [
-            .init(upperBoundText: "50.000", amountText: "5.000"),
-            .init(upperBoundText: "", amountText: "10.000"),   // "ve üzeri" yakalayıcı
+            .init(upperBoundText: Decimal(50_000).grouped(fractionDigits: 0, locale: locale),
+                  amountText: Decimal(5_000).grouped(fractionDigits: 0, locale: locale)),
+            // "ve üzeri" yakalayıcı
+            .init(upperBoundText: "", amountText: Decimal(10_000).grouped(fractionDigits: 0, locale: locale)),
         ]
         debugPrint("[AppState] Kademeli şart için örnek kademeler dolduruldu: \(displayName(for: banks[index])).")
     }
@@ -272,7 +281,7 @@ final class AppState {
         } else {
             let insertAt = tiers.count - 1
             let previousBound = insertAt > 0 ? DecimalInputParser.parse(tiers[insertAt - 1].upperBoundText) : nil
-            let boundText = (previousBound.map { $0 * 2 })?.grouped(fractionDigits: 0) ?? "50.000"
+            let boundText = (previousBound.map { $0 * 2 } ?? 50_000).grouped(fractionDigits: 0, locale: language.locale)
             tiers.insert(.init(upperBoundText: boundText, amountText: ""), at: insertAt)
         }
         banks[index].tierDrafts = tiers

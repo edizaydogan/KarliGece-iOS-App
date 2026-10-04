@@ -12,7 +12,9 @@ import Foundation
 enum ResultMessages {
 
     /// Tahmin / yatırım tavsiyesi uyarısı — Özet ve Karşılaştır'ın altında aynen.
-    static let disclaimer = "Bu bir tahmindir; bankanızın fiilî tahakkuku kuruş farkı gösterebilir. Yatırım tavsiyesi değildir."
+    static func disclaimer(_ locale: Locale) -> String {
+        locale.localized("Bu bir tahmindir; bankanızın fiilî tahakkuku kuruş farkı gösterebilir. Yatırım tavsiyesi değildir.")
+    }
 
     /// Net kazancın sıfır kalma nedeni.
     enum ZeroEarningsReason: Hashable {
@@ -21,11 +23,11 @@ enum ResultMessages {
         case belowOneKurus
 
         /// Özet'teki cümle.
-        var text: String {
+        func text(_ locale: Locale) -> String {
             switch self {
-            case .belowMinimumBalance: return "Bu ürün daha yüksek bir bakiye gerektiriyor"
-            case .requirementConsumesEntireBalance: return "Vadesiz şartı toplam bakiyenin tamamını kapsıyor"
-            case .belowOneKurus: return "Bu tutarda kazanç kuruşun altında kalıyor"
+            case .belowMinimumBalance: return locale.localized("Bu ürün daha yüksek bir bakiye gerektiriyor")
+            case .requirementConsumesEntireBalance: return locale.localized("Vadesiz şartı toplam bakiyenin tamamını kapsıyor")
+            case .belowOneKurus: return locale.localized("Bu tutarda kazanç kuruşun altında kalıyor")
             }
         }
     }
@@ -59,15 +61,16 @@ enum ResultMessages {
     }
 
     /// Sonuca eşlik eden girdi uyarıları (tanılama sırasıyla).
-    static func warnings(for diagnostics: [CalculationDiagnostic]) -> [Warning] {
-        diagnostics.compactMap { diagnostic in
+    static func warnings(for diagnostics: [CalculationDiagnostic], locale: Locale) -> [Warning] {
+        let hundred = Decimal(100).percentText(fractionDigits: 0...0, locale: locale)
+        return diagnostics.compactMap { diagnostic in
             switch diagnostic {
             case .idlePercentageAboveOneHundred:
-                return Warning(text: "Vadesiz yüzdesi %100'e sınırlandı.", tone: .error)
+                return Warning(text: locale.localized("Vadesiz yüzdesi \(hundred)'e sınırlandı."), tone: .error)
             case .deductionRatesExceedTotal:
-                return Warning(text: "Kesinti oranları toplamı %100'ü aşıyor.", tone: .error)
+                return Warning(text: locale.localized("Kesinti oranları toplamı \(hundred)'ü aşıyor."), tone: .error)
             case .unusuallyHighRate:
-                return Warning(text: "Girdiğiniz oran çok yüksek — günlük oran girmiş olabilir misiniz?", tone: .info)
+                return Warning(text: locale.localized("Girdiğiniz oran çok yüksek — günlük oran girmiş olabilir misiniz?"), tone: .info)
             default:
                 return nil
             }

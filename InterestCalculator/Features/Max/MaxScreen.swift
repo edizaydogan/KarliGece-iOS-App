@@ -28,6 +28,7 @@ struct MaxScreen: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.locale) private var locale
     @FocusState private var focused: EditorField?
     /// Max'ın kendi tutarı (ham metin). nil = henüz tohumlanmadı; o ana kadar
     /// Düzenle'deki tutar okunur ama hiçbir zaman YAZILMAZ.
@@ -159,7 +160,9 @@ struct MaxScreen: View {
                     .focused($focused, equals: .planDays)
                     .accessibilityLabel("Plan süresi, gün")
                     .accessibilityIdentifier("maxDaysField")
-                Text("gün").foregroundStyle(.slate)
+                // Tekil/çoğul ayrı anahtar: Türkçede ikisi de "gün", İngilizcede
+                // "day" / "days" (sayı alanın içinde, metinde yok).
+                Text(enteredDays == 1 ? "gün (tekil)" : "gün").foregroundStyle(.slate)
             }
         }
         .tint(.glacier)
@@ -269,7 +272,7 @@ struct MaxScreen: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.ink)
                     .monospacedDigit()
-                Text(record.createdAt.formatted(date: .abbreviated, time: .shortened))
+                Text(dateText(record.createdAt))
                     .font(.caption)
                     .foregroundStyle(.slate)
                 if !plan.allocations.isEmpty {
@@ -303,8 +306,7 @@ struct MaxScreen: View {
 
     private func historyAccessibility(_ record: MaxPlanRecord) -> String {
         let plan = record.plan
-        let date = record.createdAt.formatted(date: .abbreviated, time: .shortened)
-        return "\(date): \(moneyText(plan.amount)), \(plan.nights) gün, net kazanç \(moneyText(plan.totalProfit))"
+        return locale.localized("\(dateText(record.createdAt)): \(moneyText(plan.amount)), \(plan.nights) gün, net kazanç \(moneyText(plan.totalProfit))")
     }
 
     // MARK: - Hesap
@@ -324,25 +326,29 @@ struct MaxScreen: View {
         return value
     }
 
+    /// Alana yazılan gün sayısı, aralık dışında da (birim etiketi için).
+    private var enteredDays: Int? {
+        Int(daysText.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+
     private var parsedDays: Int? {
-        guard let days = Int(daysText.trimmingCharacters(in: .whitespacesAndNewlines)),
-              MaxPlanner.dayRange.contains(days) else { return nil }
+        guard let days = enteredDays, MaxPlanner.dayRange.contains(days) else { return nil }
         return days
     }
 
     /// Buton neden kapalı; hazırsa nil.
     private var validationMessage: String? {
         if parsedAmount == nil {
-            return "Planlamak için tutar girin."
+            return locale.localized("Planlamak için tutar girin.")
         }
         if daysText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return "Kaç günlük plan istediğinizi girin."
+            return locale.localized("Kaç günlük plan istediğinizi girin.")
         }
         if parsedDays == nil {
-            return "Gün sayısı \(MaxPlanner.dayRange.lowerBound) ile \(MaxPlanner.dayRange.upperBound) arasında olmalı."
+            return locale.localized("Gün sayısı \(MaxPlanner.dayRange.lowerBound) ile \(MaxPlanner.dayRange.upperBound) arasında olmalı.")
         }
         if !state.banks.contains(where: { (DecimalInputParser.parse($0.annualRateText) ?? 0) > 0 }) {
-            return "Düzenle'de oranı girilmiş en az bir banka gerekli."
+            return locale.localized("Düzenle'de oranı girilmiş en az bir banka gerekli.")
         }
         return nil
     }
@@ -371,7 +377,11 @@ struct MaxScreen: View {
     }
 
     private func moneyText(_ value: Money) -> String {
-        value.formatted(.currency(code: "TRY"))
+        value.formatted(.currency(code: "TRY").locale(locale))
+    }
+
+    private func dateText(_ date: Date) -> String {
+        date.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale))
     }
 }
 

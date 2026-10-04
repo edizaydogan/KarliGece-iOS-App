@@ -83,6 +83,37 @@ final class InterestCalculatorUITests: XCTestCase {
         XCTAssertTrue(element(app, "profileRoot").waitForExistence(timeout: 5))
     }
 
+    /// Profil → Tercihler → Dil: English seçilince arayüz (sekme adları dahil)
+    /// hemen İngilizceye döner, sekme değişince seçim korunur, Türkçe geri getirir.
+    @MainActor
+    func testLanguageSwitchUpdatesInterface() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitesting"]   // kalıcılığı atla: arayüz Türkçe başlar
+        app.launch()
+
+        app.tabBars.buttons["Profil"].tap()
+        let picker = element(app, "profileLanguagePicker")
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        picker.tap()
+        let english = app.buttons["English"]
+        XCTAssertTrue(english.waitForExistence(timeout: 5))
+        english.tap()
+        XCTAssertTrue(app.tabBars.buttons["Summary"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.tabBars.buttons["Profile"].exists)
+        XCTAssertFalse(app.tabBars.buttons["Özet"].exists)
+
+        app.tabBars.buttons["Summary"].tap()
+        XCTAssertTrue(element(app, "summaryRoot").waitForExistence(timeout: 5))
+        app.tabBars.buttons["Profile"].tap()
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        picker.tap()
+        let turkish = app.buttons["Türkçe"]
+        XCTAssertTrue(turkish.waitForExistence(timeout: 5))
+        turkish.tap()
+        XCTAssertTrue(app.tabBars.buttons["Özet"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.tabBars.buttons["Summary"].exists)
+    }
+
     /// Profil → Bakiyelerim: bakiye eklenir, listede ve toplamda görünür, detayı
     /// açılır; silme onay ister. Değerler assert EDİLMEZ (işletme birim testlerinde).
     @MainActor

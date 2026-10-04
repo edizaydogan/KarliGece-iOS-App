@@ -13,13 +13,14 @@ struct EditorScreen: View {
     @Environment(AppState.self) private var state
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
     @FocusState private var focused: EditorField?
 
-    private let withholdingNote = "Kanuni taban oran. Geçici kararlarla değişmiş olabilir; bankanızın ekstresinden veya güncel mevzuattan doğrulayın."
+    private let withholdingNote: LocalizedStringKey = "Kanuni taban oran. Geçici kararlarla değişmiş olabilir; bankanızın ekstresinden veya güncel mevzuattan doğrulayın."
 
     private var eftNote: String {
-        let threshold = MaxPlanner.defaultMinimumProfit.grouped(fractionDigits: 0...2)
-        return "EFT ücreti yalnız Max planında kullanılır: bu bankaya para ayrılırsa kazancından bir kez düşülür. EFT düşüldükten sonra kazancı \(threshold) ₺'yi geçmeyen bankaya para ayrılmaz."
+        let threshold = MaxPlanner.defaultMinimumProfit.grouped(fractionDigits: 0...2, locale: locale)
+        return locale.localized("EFT ücreti yalnız Max planında kullanılır: bu bankaya para ayrılırsa kazancından bir kez düşülür. EFT düşüldükten sonra kazancı \(threshold) ₺'yi geçmeyen bankaya para ayrılmaz.")
     }
 
     var body: some View {
@@ -54,8 +55,14 @@ struct EditorScreen: View {
                         debugPrint("[EditorScreen] Düzenlenecek banka seçildi: \(state.displayName(for: bank)).")
                     } label: {
                         HStack {
-                            Text(bank.name.isEmpty ? "Adsız banka" : bank.name)
-                                .foregroundStyle(.ink)
+                            Group {
+                                if bank.name.isEmpty {
+                                    Text("Adsız banka")
+                                } else {
+                                    Text(verbatim: bank.name)
+                                }
+                            }
+                            .foregroundStyle(.ink)
                             Spacer()
                             if bank.id == state.selectedBank?.id {
                                 Image(systemName: "checkmark").foregroundStyle(.glacier)
@@ -162,7 +169,7 @@ struct EditorScreen: View {
     private func tierFooter(_ draft: BankConditionDraft) -> some View {
         if draft.idleKind == .tiered {
             VStack(alignment: .leading, spacing: 4) {
-                Text(TierSummaryText.summary(for: tierTable(for: draft)))
+                Text(TierSummaryText.summary(for: tierTable(for: draft), locale: locale))
                 Text("Kademeler, girdiğiniz üst sınıra göre değerlendirilir.")
             }
             .foregroundStyle(.slate)

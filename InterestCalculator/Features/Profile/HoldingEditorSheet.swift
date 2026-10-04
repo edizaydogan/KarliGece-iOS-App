@@ -19,6 +19,7 @@ struct HoldingEditorSheet: View {
     let mode: Mode
     @Environment(AppState.self) private var state
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @FocusState private var focused: EditorField?
     @State private var bankID: UUID?
     @State private var balanceText = ""
@@ -107,7 +108,7 @@ struct HoldingEditorSheet: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Bankanızdaki güncel bakiyeyi girin. Uygulama her açılışta valörü gelen net faizi bu bakiyeye ekler: hafta içi kazanç ertesi gün, Cuma–Pazar kazancı Pazartesi.")
             if let bank = selectedBank {
-                Text("Faiz Düzenle'deki koşullarla işler: \(HoldingText.conditionSummary(for: bank, withholdingText: state.withholdingText)).")
+                Text("Faiz Düzenle'deki koşullarla işler: \(HoldingText.conditionSummary(for: bank, withholdingText: state.withholdingText, locale: locale)).")
                 if (DecimalInputParser.parse(bank.annualRateText) ?? 0) <= 0 {
                     Text("Bu bankanın oranı girilmemiş; faiz eklenmez.")
                         .foregroundStyle(.ember)
@@ -148,7 +149,7 @@ struct HoldingEditorSheet: View {
         isSeeded = true
         if let editing {
             bankID = options.contains { $0.id == editing.bankID } ? editing.bankID : nil
-            balanceText = editing.balance.grouped(fractionDigits: 2)
+            balanceText = editing.balance.grouped(fractionDigits: 2, locale: locale)
         } else {
             // Özet'te seçili banka uygunsa o, değilse ilk uygun banka.
             let preferred = state.selectedBank?.id

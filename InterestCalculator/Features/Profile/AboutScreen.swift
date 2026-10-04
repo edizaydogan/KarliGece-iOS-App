@@ -9,15 +9,16 @@
 import SwiftUI
 
 struct AboutScreen: View {
+    @Environment(\.locale) private var locale
 
     private struct Rule: Identifiable {
         let systemImage: String
-        let text: String
-        var id: String { text }
+        let text: LocalizedStringKey
+        var id: String { systemImage }
     }
 
     private var rules: [Rule] {
-        let threshold = MaxPlanner.defaultMinimumProfit.grouped(fractionDigits: 0...2)
+        let threshold = MaxPlanner.defaultMinimumProfit.grouped(fractionDigits: 0...2, locale: locale)
         return [
             Rule(systemImage: "stairs",
                  text: "Kademe sınırı dışlayıcıdır: bakiye üst sınırın altındaysa o kademe geçerlidir; tam sınır bir üst kademeye düşer."),
@@ -52,7 +53,8 @@ struct AboutScreen: View {
                         .background(RoundedRectangle(cornerRadius: 13, style: .continuous).fill(Color.glacier))
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Karlı Gece")
+                        // Marka adı, iki dilde de aynı.
+                        Text(verbatim: "Karlı Gece")
                             .font(.title3.weight(.semibold))
                             .foregroundStyle(.ink)
                         Text("Sürüm \(version)")
@@ -87,7 +89,7 @@ struct AboutScreen: View {
                 Text("Stopaj, Düzenle'de ön dolu gelir; bu oran temsilîdir. Kullanmadan önce yürürlükteki oranı kontrol edin.")
                     .font(.subheadline)
                     .foregroundStyle(.ink)
-                Text(ResultMessages.disclaimer)
+                Text(ResultMessages.disclaimer(locale))
                     .font(.subheadline)
                     .foregroundStyle(.slate)
             }

@@ -15,6 +15,7 @@ struct MaxPlanDetailScreen: View {
     let record: MaxPlanRecord
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .largeTitle) private var heroSize: CGFloat = 40
 
     private var plan: MaxPlan { record.plan }
@@ -87,11 +88,11 @@ struct MaxPlanDetailScreen: View {
                     .font(.footnote)
                     .foregroundStyle(.slate)
             }
-            Text("\(moneyText(plan.amount)) · \(dateText(record.startDate)) → \(dateText(endDate))")
+            Text(verbatim: "\(moneyText(plan.amount)) · \(dateText(record.startDate)) → \(dateText(endDate))")
                 .font(.footnote)
                 .foregroundStyle(.slate)
                 .monospacedDigit()
-            Text("Hesaplandı: \(record.createdAt.formatted(date: .long, time: .shortened))")
+            Text("Hesaplandı: \(record.createdAt.formatted(Date.FormatStyle(date: .long, time: .shortened).locale(locale)))")
                 .font(.caption)
                 .foregroundStyle(.slate)
         }
@@ -144,7 +145,7 @@ struct MaxPlanDetailScreen: View {
                         .font(.headline)
                         .foregroundStyle(.ink)
                     Text(MaxPlanText.rateCaption(percent: allocation.annualRatePercent,
-                                                 isNet: allocation.rateIsNet))
+                                                 isNet: allocation.rateIsNet, locale: locale))
                         .font(.caption)
                         .foregroundStyle(.slate)
                 }
@@ -160,7 +161,7 @@ struct MaxPlanDetailScreen: View {
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-            ruleBadge(MaxPlanText.rule(for: allocation),
+            ruleBadge(MaxPlanText.rule(for: allocation, locale: locale),
                       systemImage: allocation.tier == nil ? "building.columns" : "stairs")
 
             hairline
@@ -178,9 +179,9 @@ struct MaxPlanDetailScreen: View {
 
             if let headroom = allocation.headroom, let upper = allocation.tier?.upperBound {
                 hairline
-                moneyRow("Üst kademeye (\(upper.grouped(fractionDigits: 0)) ₺) kalan", headroom)
+                moneyRow("Üst kademeye (\(upper.grouped(fractionDigits: 0, locale: locale)) ₺) kalan", headroom)
                 if let oneDay = allocation.oneDayNet {
-                    Text("Hedef pay: 1 günlük net faiz \(moneyText(oneDay)) × %\(bufferText) = \(moneyText(oneDay * plan.bufferPercent / 100))")
+                    Text("Hedef pay: 1 günlük net faiz \(moneyText(oneDay)) × \(bufferText) = \(moneyText(oneDay * plan.bufferPercent / 100))")
                         .font(.caption)
                         .foregroundStyle(.slate)
                 }
@@ -250,7 +251,7 @@ struct MaxPlanDetailScreen: View {
                 HStack {
                     Text(bank.name).foregroundStyle(.ink)
                     Spacer()
-                    Text(MaxPlanText.caption(for: bank))
+                    Text(MaxPlanText.caption(for: bank, locale: locale))
                         .foregroundStyle(.slate)
                 }
                 .font(.subheadline)
@@ -274,7 +275,7 @@ struct MaxPlanDetailScreen: View {
             }
             hairline
             moneyRow("Brüt faiz", plan.totalGross)
-            deductionRow("Stopaj (%\(plan.withholdingPercent.grouped(fractionDigits: 0...2)))", plan.totalDeductions)
+            deductionRow("Stopaj (\(plan.withholdingPercent.percentText(fractionDigits: 0...2, locale: locale)))", plan.totalDeductions)
             if plan.totalEftFees > 0 {
                 deductionRow("EFT ücretleri", plan.totalEftFees)
             }
@@ -287,7 +288,7 @@ struct MaxPlanDetailScreen: View {
     }
 
     @ViewBuilder
-    private func moneyRow(_ label: String, _ value: Money, emphasized: Bool = false) -> some View {
+    private func moneyRow(_ label: LocalizedStringKey, _ value: Money, emphasized: Bool = false) -> some View {
         let labelText = Text(label)
             .font(emphasized ? .headline : .body)
             .foregroundStyle(emphasized ? .ink : .slate)
@@ -306,7 +307,7 @@ struct MaxPlanDetailScreen: View {
     }
 
     @ViewBuilder
-    private func deductionRow(_ label: String, _ value: Money) -> some View {
+    private func deductionRow(_ label: LocalizedStringKey, _ value: Money) -> some View {
         let labelText = Text(label).font(.callout).foregroundStyle(.slate)
         let valueText = Text("− " + moneyText(value))
             .font(.system(.callout, design: .rounded).weight(.medium))
@@ -325,7 +326,7 @@ struct MaxPlanDetailScreen: View {
 
     private var notes: some View {
         VStack(alignment: .leading, spacing: 6) {
-            noteText("Kademeli bankalarda tutar, vade sonunda üst kademeye geçmeyecek şekilde seçilir; sınıra en az vade sonu bakiyesinin 1 günlük net faizi × %\(bufferText) kadar pay kalır.")
+            noteText("Kademeli bankalarda tutar, vade sonunda üst kademeye geçmeyecek şekilde seçilir; sınıra en az vade sonu bakiyesinin 1 günlük net faizi × \(bufferText) kadar pay kalır.")
             if let threshold = plan.minimumProfit {
                 noteText("EFT ücreti, para ayrılan her bankanın kazancından bir kez düşülür. EFT düşüldükten sonra kazancı \(amountText(threshold)) ₺'yi geçmeyen bankaya para ayrılmaz.")
             }
@@ -336,7 +337,7 @@ struct MaxPlanDetailScreen: View {
         .padding(.horizontal, 4)
     }
 
-    private func noteText(_ text: String) -> some View {
+    private func noteText(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(.footnote)
             .foregroundStyle(.slate)
@@ -344,28 +345,28 @@ struct MaxPlanDetailScreen: View {
 
     private var noEarningsText: String {
         guard let threshold = plan.minimumProfit else {
-            return "Bu tutar ve sürede hiçbir banka net kazanç sağlamıyor. Düzenle'deki oranları ve vadesiz şartlarını kontrol edin."
+            return locale.localized("Bu tutar ve sürede hiçbir banka net kazanç sağlamıyor. Düzenle'deki oranları ve vadesiz şartlarını kontrol edin.")
         }
-        return "Bu tutar ve sürede hiçbir banka, EFT ücreti düşüldükten sonra \(amountText(threshold)) ₺'den fazla kazandırmıyor. Tutarı ya da süreyi artırabilir, Düzenle'deki oranları, vadesiz şartlarını ve EFT ücretlerini kontrol edebilirsiniz."
+        return locale.localized("Bu tutar ve sürede hiçbir banka, EFT ücreti düşüldükten sonra \(amountText(threshold)) ₺'den fazla kazandırmıyor. Tutarı ya da süreyi artırabilir, Düzenle'deki oranları, vadesiz şartlarını ve EFT ücretlerini kontrol edebilirsiniz.")
     }
 
     private var unallocatedText: String {
-        let reason = "örneğin eklendiği banka üst kademeye geçip daha fazla vadesiz tutmayı gerektiriyor"
+        // İki cümle de tam yazılır (ortak parça birleştirilmez): çeviri cümle cümle yapılır.
         guard let threshold = plan.minimumProfit else {
-            return "Bu tutar hiçbir bankaya kazancı artırarak eklenemiyor; \(reason). Vadesiz bir hesapta tutabilirsiniz."
+            return locale.localized("Bu tutar hiçbir bankaya kazancı artırarak eklenemiyor; örneğin eklendiği banka üst kademeye geçip daha fazla vadesiz tutmayı gerektiriyor. Vadesiz bir hesapta tutabilirsiniz.")
         }
-        return "Bu tutar hiçbir bankaya kazancı artırarak eklenemiyor; \(reason) ya da bankadaki kazanç EFT ücreti düşüldükten sonra \(amountText(threshold)) ₺'yi geçmiyor. Vadesiz bir hesapta tutabilirsiniz."
+        return locale.localized("Bu tutar hiçbir bankaya kazancı artırarak eklenemiyor; örneğin eklendiği banka üst kademeye geçip daha fazla vadesiz tutmayı gerektiriyor ya da bankadaki kazanç EFT ücreti düşüldükten sonra \(amountText(threshold)) ₺'yi geçmiyor. Vadesiz bir hesapta tutabilirsiniz.")
     }
 
     private var unusedText: String {
         guard let threshold = plan.minimumProfit else {
-            return "Bu tutar ve sürede bu bankalara para ayırmak toplam kazancı artırmıyor."
+            return locale.localized("Bu tutar ve sürede bu bankalara para ayırmak toplam kazancı artırmıyor.")
         }
-        return "Bu tutar ve sürede bu bankalara para ayırmak toplam kazancı artırmıyor ya da bankadaki kazanç EFT ücreti düşüldükten sonra \(amountText(threshold)) ₺'yi geçmiyor."
+        return locale.localized("Bu tutar ve sürede bu bankalara para ayırmak toplam kazancı artırmıyor ya da bankadaki kazanç EFT ücreti düşüldükten sonra \(amountText(threshold)) ₺'yi geçmiyor.")
     }
 
     private var disclaimer: some View {
-        Text(ResultMessages.disclaimer)
+        Text(ResultMessages.disclaimer(locale))
             .font(.footnote)
             .foregroundStyle(.slate)
             .multilineTextAlignment(.center)
@@ -375,7 +376,7 @@ struct MaxPlanDetailScreen: View {
 
     // MARK: - Biçim yardımcıları
 
-    private func sectionTitle(_ text: String) -> some View {
+    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(.headline)
             .foregroundStyle(.ink)
@@ -387,27 +388,28 @@ struct MaxPlanDetailScreen: View {
         AccrualCalendar.addNights(plan.nights, to: record.startDate)
     }
 
+    /// Kademe payı yüzdesi: "%10".
     private var bufferText: String {
-        plan.bufferPercent.grouped(fractionDigits: 0...2)
+        plan.bufferPercent.percentText(fractionDigits: 0...2, locale: locale)
     }
 
     /// Cümle içi tutar: "20", "7,5" (₺ ve ek cümlede).
     private func amountText(_ value: Money) -> String {
-        value.grouped(fractionDigits: 0...2)
+        value.grouped(fractionDigits: 0...2, locale: locale)
     }
 
     /// Toplam tutar içindeki pay: "%16,3".
     private func shareText(_ deposit: Money) -> String {
         guard plan.amount > 0 else { return "" }
-        return "%" + (deposit * 100 / plan.amount).grouped(fractionDigits: 0...1)
+        return (deposit * 100 / plan.amount).percentText(fractionDigits: 0...1, locale: locale)
     }
 
     private func moneyText(_ value: Money) -> String {
-        value.formatted(.currency(code: "TRY"))
+        value.formatted(.currency(code: "TRY").locale(locale))
     }
 
     private func dateText(_ date: Date) -> String {
-        date.formatted(date: .abbreviated, time: .omitted)
+        date.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted).locale(locale))
     }
 
     private var hairline: some View {

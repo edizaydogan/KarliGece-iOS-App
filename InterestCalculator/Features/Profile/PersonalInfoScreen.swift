@@ -23,9 +23,15 @@ struct PersonalInfoScreen: View {
             Section {
                 VStack(spacing: 10) {
                     ProfileAvatar(initials: state.profile.initials, size: 84)
-                    Text(state.profile.fullName ?? "Adınız")
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(state.profile.fullName == nil ? Color.slate : Color.ink)
+                    Group {
+                        if let name = state.profile.fullName {
+                            Text(verbatim: name)
+                        } else {
+                            Text("Adınız")
+                        }
+                    }
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(state.profile.fullName == nil ? Color.slate : Color.ink)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)

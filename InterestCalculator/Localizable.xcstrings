@@ -1,0 +1,2585 @@
+{
+  "sourceLanguage" : "tr",
+  "strings" : {
+    "%@ Banka Düzenle'de yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Bank not in Edit"
+          }
+        }
+      }
+    },
+    "%@ EFT ücreti düşüldü" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ in EFT fees deducted"
+          }
+        }
+      }
+    },
+    "%@ faiz eklendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ interest added"
+          }
+        }
+      }
+    },
+    "%@ itibarıyla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As of %@"
+          }
+        }
+      }
+    },
+    "%@ vadesiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ idle"
+          }
+        }
+      }
+    },
+    "%@ · %lld gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %#@arg2@"
+          },
+          "substitutions" : {
+            "arg2" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%@ · EFT %@ ₺" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · EFT ₺%@"
+          }
+        }
+      }
+    },
+    "%@ · brüt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · gross"
+          }
+        }
+      }
+    },
+    "%@ · net" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · net"
+          }
+        }
+      }
+    },
+    "%@ – %@ ₺ arası" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "₺%@ – %@"
+          }
+        }
+      }
+    },
+    "%@ ₺ vadesiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "₺%@ idle"
+          }
+        }
+      }
+    },
+    "%@ ₺ ve üzeri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "₺%@ and above"
+          }
+        }
+      }
+    },
+    "%@ ₺'nin altı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Below ₺%@"
+          }
+        }
+      }
+    },
+    "%@, %lld günlük net kazanç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, %lld-day net earnings"
+          }
+        }
+      }
+    },
+    "%@, brüt faiz yıllık" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, gross annual interest"
+          }
+        }
+      }
+    },
+    "%@, faize giren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, earning interest"
+          }
+        }
+      }
+    },
+    "%@, limit üstü faizsiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, above cap, no interest"
+          }
+        }
+      }
+    },
+    "%@, net faiz yıllık" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, net annual interest"
+          }
+        }
+      }
+    },
+    "%@, vadesiz kalan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, kept idle"
+          }
+        }
+      }
+    },
+    "%@: %@, %lld gün, net kazanç %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: %@, %lld-day plan, net earnings %@"
+          }
+        }
+      }
+    },
+    "%@ ₺ vadesiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "₺%@ idle"
+          }
+        }
+      }
+    },
+    "%lld banka · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@arg1@ · %2$@"
+          },
+          "substitutions" : {
+            "arg1" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg bank"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg banks"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld gecelik net kazanç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld-night net earnings"
+          }
+        }
+      }
+    },
+    "%lld günlük" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld günlük net faiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld-day net interest"
+          }
+        }
+      }
+    },
+    "%lld günlük net kazanç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld-day net earnings"
+          }
+        }
+      }
+    },
+    "%lld günlük toplam net kazanç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld-day total net earnings"
+          }
+        }
+      }
+    },
+    "%lld hesap" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld calculation"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld calculations"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld. sütun bankası: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Column %lld bank: %@"
+          }
+        }
+      }
+    },
+    "0" : {
+      "shouldTranslate" : false
+    },
+    "1" : {
+      "shouldTranslate" : false
+    },
+    "1 günlük kazanç kuruşun altında kalıyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1-day earnings are below one kuruş"
+          }
+        }
+      }
+    },
+    "2 banka" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 banks"
+          }
+        }
+      }
+    },
+    "3 banka" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3 banks"
+          }
+        }
+      }
+    },
+    "Ad" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        }
+      }
+    },
+    "Adsız banka" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unnamed bank"
+          }
+        }
+      }
+    },
+    "Adsız banka %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unnamed bank %lld"
+          }
+        }
+      }
+    },
+    "Adınız" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your name"
+          }
+        }
+      }
+    },
+    "Adınızı eklemek için dokunun" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to add your name"
+          }
+        }
+      }
+    },
+    "Açık" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light"
+          }
+        }
+      }
+    },
+    "Bakiye" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balance"
+          }
+        }
+      }
+    },
+    "Bakiye bir bankaya bağlanır ve o bankanın koşullarıyla faiz alır. Önce Düzenle'den banka ekleyin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A balance is linked to a bank and earns interest on that bank's terms. Add a bank in Edit first."
+          }
+        }
+      }
+    },
+    "Bakiye dağılımı (başlangıç)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balance breakdown (start)"
+          }
+        }
+      }
+    },
+    "Bakiye ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Balance"
+          }
+        }
+      }
+    },
+    "Bakiye girildi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balance entered"
+          }
+        }
+      }
+    },
+    "Bakiye kaydı silinsin mi?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this balance record?"
+          }
+        }
+      }
+    },
+    "Bakiye ve hareketleri silinir. Bu işlem geri alınamaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The balance and its activity will be deleted. This can't be undone."
+          }
+        }
+      }
+    },
+    "Bakiyelerim" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My Balances"
+          }
+        }
+      }
+    },
+    "Bakiyelerim, uygulama her açıldığında valörü gelen net faizi bağlı bankanın Düzenle'deki koşulları ve stopajla bakiyeye ekler." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each time the app opens, My Balances adds the net interest whose value date has arrived, using the linked bank's terms in Edit and the withholding rate."
+          }
+        }
+      }
+    },
+    "Bakiyeyi değiştirirseniz yeni tutar bugün itibarıyla geçerli olur ve eklenen faiz sıfırlanır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you change the balance, the new amount applies as of today and the added interest resets."
+          }
+        }
+      }
+    },
+    "Bakiyeyi düzenle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Balance"
+          }
+        }
+      }
+    },
+    "Banka" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bank"
+          }
+        }
+      }
+    },
+    "Banka adı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bank name"
+          }
+        }
+      }
+    },
+    "Banka ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Bank"
+          }
+        }
+      }
+    },
+    "Bankalar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Banks"
+          }
+        }
+      }
+    },
+    "Bankalardaki gerçek bakiyeleriniz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your actual bank balances"
+          }
+        }
+      }
+    },
+    "Bankalardaki gerçek bakiyelerinizi ekleyin; uygulama her açılışta valörü gelen faizi üzerine ekler." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add your actual bank balances; each time the app opens, it adds the interest whose value date has arrived."
+          }
+        }
+      }
+    },
+    "Bankaların son işlem saati (cut-off) vardır; saat sınırından sonraki transferler ertesi iş günü valörüyle işleyebilir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Banks have a cut-off time; transfers made after it may get the next business day's value date."
+          }
+        }
+      }
+    },
+    "Bankanızdaki güncel bakiyeyi girin. Uygulama her açılışta valörü gelen net faizi bu bakiyeye ekler: hafta içi kazanç ertesi gün, Cuma–Pazar kazancı Pazartesi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your current balance at the bank. Each time the app opens, it adds the net interest whose value date has arrived: weekday earnings the next day, Friday–Sunday earnings on Monday."
+          }
+        }
+      }
+    },
+    "Başlamak için bakiyenizi ve bir banka kuralı girin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your balance and a bank rule to get started"
+          }
+        }
+      }
+    },
+    "Başlangıç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        }
+      }
+    },
+    "Bilgileriniz hesap ya da sunucu olmadan, yalnız bu cihazda saklanır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your info is stored only on this device, with no account or server."
+          }
+        }
+      }
+    },
+    "Bitiş" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End"
+          }
+        }
+      }
+    },
+    "Bitti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
+    },
+    "Brüt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gross"
+          }
+        }
+      }
+    },
+    "Brüt faiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gross interest"
+          }
+        }
+      }
+    },
+    "Brüt faiz (yıllık)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gross interest (annual)"
+          }
+        }
+      }
+    },
+    "Bu bankanın oranı girilmemiş; faiz eklenmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This bank has no rate entered; no interest is added."
+          }
+        }
+      }
+    },
+    "Bu bir tahmindir; bankanızın fiilî tahakkuku kuruş farkı gösterebilir. Yatırım tavsiyesi değildir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is an estimate; your bank's actual accrual may differ by a few kuruş. Not investment advice."
+          }
+        }
+      }
+    },
+    "Bu kaydın bankası Düzenle sekmesinde yok; faiz eklenmiyor. Sağ üstteki Düzenle ile başka bir banka seçebilirsiniz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This record's bank is no longer in the Edit tab, so no interest is added. Use Edit at the top right to choose another bank."
+          }
+        }
+      }
+    },
+    "Bu sütunda karşılaştırılacak bankayı değiştirir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changes the bank compared in this column"
+          }
+        }
+      }
+    },
+    "Bu tutar hiçbir bankaya kazancı artırarak eklenemiyor; örneğin eklendiği banka üst kademeye geçip daha fazla vadesiz tutmayı gerektiriyor ya da bankadaki kazanç EFT ücreti düşüldükten sonra %@ ₺'yi geçmiyor. Vadesiz bir hesapta tutabilirsiniz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This amount can't be added to any bank in a way that increases earnings; for example, the bank would move up to a tier that requires keeping more idle, or its earnings wouldn't exceed ₺%@ after the EFT fee. You can keep it in a demand account."
+          }
+        }
+      }
+    },
+    "Bu tutar hiçbir bankaya kazancı artırarak eklenemiyor; örneğin eklendiği banka üst kademeye geçip daha fazla vadesiz tutmayı gerektiriyor. Vadesiz bir hesapta tutabilirsiniz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This amount can't be added to any bank in a way that increases earnings; for example, the bank would move up to a tier that requires keeping more idle. You can keep it in a demand account."
+          }
+        }
+      }
+    },
+    "Bu tutar ve sürede bu bankalara para ayırmak toplam kazancı artırmıyor ya da bankadaki kazanç EFT ücreti düşüldükten sonra %@ ₺'yi geçmiyor." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For this amount and duration, allocating money to these banks doesn't increase total earnings, or their earnings wouldn't exceed ₺%@ after the EFT fee."
+          }
+        }
+      }
+    },
+    "Bu tutar ve sürede bu bankalara para ayırmak toplam kazancı artırmıyor." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For this amount and duration, allocating money to these banks doesn't increase total earnings."
+          }
+        }
+      }
+    },
+    "Bu tutar ve sürede hiçbir banka net kazanç sağlamıyor. Düzenle'deki oranları ve vadesiz şartlarını kontrol edin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For this amount and duration, no bank yields net earnings. Check the rates and idle requirements in Edit."
+          }
+        }
+      }
+    },
+    "Bu tutar ve sürede hiçbir banka, EFT ücreti düşüldükten sonra %@ ₺'den fazla kazandırmıyor. Tutarı ya da süreyi artırabilir, Düzenle'deki oranları, vadesiz şartlarını ve EFT ücretlerini kontrol edebilirsiniz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For this amount and duration, no bank earns more than ₺%@ after the EFT fee. You can increase the amount or the duration, or check the rates, idle requirements and EFT fees in Edit."
+          }
+        }
+      }
+    },
+    "Bu tutar ve üzeri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This amount and above"
+          }
+        }
+      }
+    },
+    "Bu tutarda kazanç kuruşun altında kalıyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earnings on this amount are below one kuruş"
+          }
+        }
+      }
+    },
+    "Bu ürün daha yüksek bir bakiye gerektiriyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This product requires a higher balance"
+          }
+        }
+      }
+    },
+    "Bugünden başlayarak, valör kurallı bileşik" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting today, compounded by value date"
+          }
+        }
+      }
+    },
+    "Buradaki tutar ve banka seçimleri Düzenle'yi ve Özet'i etkilemez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The amount and bank choices here don't affect Edit or Summary."
+          }
+        }
+      }
+    },
+    "Bölmek %@ daha fazla kazandırıyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Splitting earns %@ more"
+          }
+        }
+      }
+    },
+    "Cuma–Pazar kazancı Pazartesi 00:00'da eklenir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Friday–Sunday earnings are added Monday at 00:00"
+          }
+        }
+      }
+    },
+    "Dağılım" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allocation"
+          }
+        }
+      }
+    },
+    "Dağıtılmayan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unallocated"
+          }
+        }
+      }
+    },
+    "Dil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        }
+      }
+    },
+    "Düzenle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
+    "Düzenle sekmesinden bir banka daha ekleyin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add another bank in the Edit tab."
+          }
+        }
+      }
+    },
+    "Düzenle'de oranı girilmiş en az bir banka gerekli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At least one bank with a rate in Edit is required."
+          }
+        }
+      }
+    },
+    "Düzenle'deki tutarla başlar; buradaki değişiklik Düzenle'yi etkilemez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starts with the amount in Edit; changes here don't affect Edit."
+          }
+        }
+      }
+    },
+    "Düzenle'ye git" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to Edit"
+          }
+        }
+      }
+    },
+    "EFT ücreti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EFT fee"
+          }
+        }
+      }
+    },
+    "EFT ücreti yalnız Max planında kullanılır: bu bankaya para ayrılırsa kazancından bir kez düşülür. EFT düşüldükten sonra kazancı %@ ₺'yi geçmeyen bankaya para ayrılmaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The EFT fee is only used in Max plans: if money goes to this bank, it's deducted once from its earnings. Banks whose earnings don't exceed ₺%@ after the EFT fee get no allocation."
+          }
+        }
+      }
+    },
+    "EFT ücreti, para ayrılan her bankanın kazancından bir kez düşülür. EFT düşüldükten sonra kazancı %@ ₺'yi geçmeyen bankaya para ayrılmaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The EFT fee is deducted once from the earnings of each bank that receives money. Banks whose earnings don't exceed ₺%@ after the EFT fee get no allocation."
+          }
+        }
+      }
+    },
+    "EFT ücretleri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EFT fees"
+          }
+        }
+      }
+    },
+    "Efektif oran, bankalar karşılaştırılabilsin diye her zaman 365 takvim günüyle hesaplanır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The effective rate is always calculated over 365 calendar days so that banks can be compared."
+          }
+        }
+      }
+    },
+    "Ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        }
+      }
+    },
+    "Eklenen faiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interest added"
+          }
+        }
+      }
+    },
+    "Faiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interest"
+          }
+        }
+      }
+    },
+    "Faiz Düzenle'deki koşullarla işler: %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interest accrues on the terms in Edit: %@."
+          }
+        }
+      }
+    },
+    "Faiz işlemiyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not earning interest"
+          }
+        }
+      }
+    },
+    "Faiz · %lld gece" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Interest · %lld night"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Interest · %lld nights"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Faiz, bağlı bankanın Düzenle'deki koşulları ve stopajla her açılışta eklenir: hafta içi kazanç ertesi gün, Cuma–Pazar kazancı Pazartesi. Bankanızın tahakkukundan kuruş farkı olabilir; gerekirse bakiyeyi düzeltin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interest is added each time the app opens, using the linked bank's terms in Edit and the withholding rate: weekday earnings the next day, Friday–Sunday earnings on Monday. It may differ from your bank's accrual by a few kuruş; correct the balance if needed."
+          }
+        }
+      }
+    },
+    "Faize giren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earning interest"
+          }
+        }
+      }
+    },
+    "Faize giren %@ üzerinden %@ yıllık oranla %lld gece boyunca hesaplandı. Hafta içi kazanç ertesi gün 00:00 valörüyle bakiyeye eklenip bileşiklenir; Cuma–Pazar kazancı Pazartesi 00:00 valörüyle toplu işlenir. Toplam brüt %@, %@ stopaj sonrası net %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculated on the interest-bearing %@ at an annual rate of %@ over a %lld-night term. Weekday earnings are added to the balance at 00:00 the next day and compound; Friday–Sunday earnings are added together Monday at 00:00. Total gross %@; net after %@ withholding %@."
+          }
+        }
+      }
+    },
+    "Faize giren bakiye" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interest-bearing balance"
+          }
+        }
+      }
+    },
+    "Gecelik net kazanç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nightly net earnings"
+          }
+        }
+      }
+    },
+    "Gecelik net kazanç ≈ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nightly net earnings ≈ %@"
+          }
+        }
+      }
+    },
+    "Geçmiş" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History"
+          }
+        }
+      }
+    },
+    "Geçmiş temizlensin mi?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear history?"
+          }
+        }
+      }
+    },
+    "Geçmişi Temizle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear History"
+          }
+        }
+      }
+    },
+    "Geçmişteki tüm hesapları siler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deletes all calculations in the history"
+          }
+        }
+      }
+    },
+    "Girdiğiniz oran çok yüksek — günlük oran girmiş olabilir misiniz?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The rate you entered is very high — did you enter a daily rate?"
+          }
+        }
+      }
+    },
+    "Girilen bakiye" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entered balance"
+          }
+        }
+      }
+    },
+    "Görünüm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        }
+      }
+    },
+    "Gün sayısı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duration"
+          }
+        }
+      }
+    },
+    "Gün sayısı %lld ile %lld arasında olmalı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The number of days must be between %lld and %lld."
+          }
+        }
+      }
+    },
+    "Gün sayısını değiştir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change duration"
+          }
+        }
+      }
+    },
+    "Güncel bakiye" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current balance"
+          }
+        }
+      }
+    },
+    "Günlük ortalama %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily average %@"
+          }
+        }
+      }
+    },
+    "Hafta içi kazanç ertesi gün 00:00'da bakiyeye eklenip bileşiklenir. Cuma–Pazar kazancı Pazartesi 00:00'da toplu eklenir. Tatil takvimi yoktur." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekday earnings are added to the balance at 00:00 the next day and compound. Friday–Sunday earnings are added together Monday at 00:00. There is no holiday calendar."
+          }
+        }
+      }
+    },
+    "Hafta içi kazanç ertesi gün 00:00, hafta sonu (Cuma–Pazar) Pazartesi 00:00 valörüyle bakiyeye eklenip bileşiklenir. Bitiş hafta sonuna denk gelirse ilk iş gününe (Pazartesi) alınır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekday earnings are added to the balance at 00:00 the next day, weekend (Friday–Sunday) earnings Monday at 00:00, and they compound. An end date on a weekend moves to the next business day (Monday)."
+          }
+        }
+      }
+    },
+    "Hafta sonu biriken %@ Pazartesi eklenecek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ accrued over the weekend will be added Monday"
+          }
+        }
+      }
+    },
+    "Hakkında" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        }
+      }
+    },
+    "Hareketler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activity"
+          }
+        }
+      }
+    },
+    "Hedef pay: 1 günlük net faiz %@ × %@ = %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target margin: 1-day net interest %@ × %@ = %@"
+          }
+        }
+      }
+    },
+    "Henüz bakiye yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No balances yet"
+          }
+        }
+      }
+    },
+    "Henüz hesap yok. Maksimize Et sonuçları burada, hesaplandıkları tarihle listelenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No calculations yet. Maximize results are listed here with the date they were calculated."
+          }
+        }
+      }
+    },
+    "Her tutar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Any amount"
+          }
+        }
+      }
+    },
+    "Hesaplama kuralları" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculation Rules"
+          }
+        }
+      }
+    },
+    "Hesaplama kuralları ve sürüm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculation rules and version"
+          }
+        }
+      }
+    },
+    "Hesaplandı: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculated: %@"
+          }
+        }
+      }
+    },
+    "Hesaplanıyor…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculating…"
+          }
+        }
+      }
+    },
+    "Hesaplar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accounts"
+          }
+        }
+      }
+    },
+    "Hesaplarım" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My Accounts"
+          }
+        }
+      }
+    },
+    "Kademe ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Tier"
+          }
+        }
+      }
+    },
+    "Kademe sınırı dışlayıcıdır: bakiye üst sınırın altındaysa o kademe geçerlidir; tam sınır bir üst kademeye düşer." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tier limits are exclusive: a tier applies while the balance is below its upper limit; a balance exactly at the limit falls into the next tier."
+          }
+        }
+      }
+    },
+    "Kademeler, girdiğiniz üst sınıra göre değerlendirilir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiers are evaluated by the upper limit you enter."
+          }
+        }
+      }
+    },
+    "Kademeli" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiered"
+          }
+        }
+      }
+    },
+    "Kademeli bankalarda tutar, vade sonunda üst kademeye geçmeyecek şekilde seçilir; sınıra en az vade sonu bakiyesinin 1 günlük net faizi × %@ kadar pay kalır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For tiered banks, the amount is chosen so that it doesn't move up a tier by maturity; a margin of at least the 1-day net interest on the maturity balance × %@ is left below the limit."
+          }
+        }
+      }
+    },
+    "Kanuni taban oran. Geçici kararlarla değişmiş olabilir; bankanızın ekstresinden veya güncel mevzuattan doğrulayın." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Statutory base rate. It may have changed by temporary decree; verify it on your bank statement or in current regulations."
+          }
+        }
+      }
+    },
+    "Karşılaştır" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compare"
+          }
+        }
+      }
+    },
+    "Karşılaştırmak için en az iki banka gerekli" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At least two banks are needed to compare"
+          }
+        }
+      }
+    },
+    "Karşılaştırılacak banka sayısı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Number of banks to compare"
+          }
+        }
+      }
+    },
+    "Kaydet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        }
+      }
+    },
+    "Kaydı Sil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Record"
+          }
+        }
+      }
+    },
+    "Kaydı sil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Record"
+          }
+        }
+      }
+    },
+    "Kayıtlı %lld hesap silinir. Bu işlem geri alınamaz." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld saved calculation will be deleted. This can't be undone."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld saved calculations will be deleted. This can't be undone."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Kazanç sağlayan bir dağılım bulunamadı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No allocation with earnings found"
+          }
+        }
+      }
+    },
+    "Kazançlar bugünden başlar. Hafta içi kazanç ertesi gün, hafta sonu (Cuma–Pazar) kazancı Pazartesi valörüyle bakiyeye eklenip bileşiklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earnings start today. Weekday earnings are added to the balance the next day, weekend (Friday–Sunday) earnings with Monday's value date, and they compound."
+          }
+        }
+      }
+    },
+    "Kaç günlük plan istediğinizi girin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter how many days the plan should cover."
+          }
+        }
+      }
+    },
+    "Kaç günlük plan yapmak istersiniz?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How many days should the plan cover?"
+          }
+        }
+      }
+    },
+    "Kesinti oranları toplamı %@'ü aşıyor." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total deduction rates exceed %@."
+          }
+        }
+      }
+    },
+    "Kişisel bilgiler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personal info"
+          }
+        }
+      }
+    },
+    "Koyu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dark"
+          }
+        }
+      }
+    },
+    "Limit üstü (faizsiz)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Above cap (no interest)"
+          }
+        }
+      }
+    },
+    "Maksimize Et" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximize"
+          }
+        }
+      }
+    },
+    "Max" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max"
+          }
+        }
+      }
+    },
+    "Max planı kademeli bankada üst kademeye geçmez. EFT ücreti para ayrılan bankanın kazancından bir kez düşülür; kazancı %@ ₺'yi geçmeyen bankaya para ayrılmaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Max plan never moves a tiered bank up a tier. The EFT fee is deducted once from the earnings of each bank that receives money; banks earning no more than ₺%@ get no allocation."
+          }
+        }
+      }
+    },
+    "Neden bu tutar?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Why this amount?"
+          }
+        }
+      }
+    },
+    "Net" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Net"
+          }
+        }
+      }
+    },
+    "Net faiz (yıllık)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Net interest (annual)"
+          }
+        }
+      }
+    },
+    "Net gecelik kazanç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Net nightly earnings"
+          }
+        }
+      }
+    },
+    "Net kazanç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Net earnings"
+          }
+        }
+      }
+    },
+    "Net kazanç (%lld gece)" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Net earnings (%lld night)"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Net earnings (%lld nights)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Net kazanç (%lld gün)" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Net earnings (%lld day)"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Net earnings (%lld days)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Not var, ayrıntısı aşağıda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has a note, see below"
+          }
+        }
+      }
+    },
+    "Notlar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
+          }
+        }
+      }
+    },
+    "Oran girilmemiş" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No rate entered"
+          }
+        }
+      }
+    },
+    "Oran yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No rate"
+          }
+        }
+      }
+    },
+    "Oranlar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rates"
+          }
+        }
+      }
+    },
+    "Oranlar: vadesiz şart, limit ve %@ stopaj dahil, bileşiksiz yıllık oran (365 gün). Bileşiğin etkisi kazanç satırlarında görünür." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rates: simple annual rate (365 days) including the idle requirement, the cap and %@ withholding. The effect of compounding shows in the earnings rows."
+          }
+        }
+      }
+    },
+    "Para" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Money"
+          }
+        }
+      }
+    },
+    "Para ayrılmayan bankalar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Banks with no allocation"
+          }
+        }
+      }
+    },
+    "Paranıza brüt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your gross"
+          }
+        }
+      }
+    },
+    "Pazartesi eklenecek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To be added Monday"
+          }
+        }
+      }
+    },
+    "Plan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan"
+          }
+        }
+      }
+    },
+    "Plan hesap günü başlar. Hafta içi kazanç ertesi gün, hafta sonu (Cuma–Pazar) kazancı Pazartesi valörüyle bakiyeye eklenip bileşiklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The plan starts on the day it's calculated. Weekday earnings are added to the balance the next day, weekend (Friday–Sunday) earnings with Monday's value date, and they compound."
+          }
+        }
+      }
+    },
+    "Plan süresi, gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan length, days"
+          }
+        }
+      }
+    },
+    "Planlamak için tutar girin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter an amount to plan."
+          }
+        }
+      }
+    },
+    "Profil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        }
+      }
+    },
+    "Profilinizi oluşturun" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create your profile"
+          }
+        }
+      }
+    },
+    "Sabit tutar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed amount"
+          }
+        }
+      }
+    },
+    "Seçili banka" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected Bank"
+          }
+        }
+      }
+    },
+    "Seçin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select"
+          }
+        }
+      }
+    },
+    "Sistem" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System"
+          }
+        }
+      }
+    },
+    "Son %lld hareket gösterilir." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Showing the last %lld entry."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Showing the last %lld entries."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Soyad" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Surname"
+          }
+        }
+      }
+    },
+    "Soyadınız" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your surname"
+          }
+        }
+      }
+    },
+    "Stopaj" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Withholding"
+          }
+        }
+      }
+    },
+    "Stopaj (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Withholding (%@)"
+          }
+        }
+      }
+    },
+    "Stopaj, Düzenle'de ön dolu gelir; bu oran temsilîdir. Kullanmadan önce yürürlükteki oranı kontrol edin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Withholding comes prefilled in Edit; the rate is illustrative. Check the current rate before relying on it."
+          }
+        }
+      }
+    },
+    "Sürüm %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        }
+      }
+    },
+    "TL vadesiz / gecelik mevduat hesapları için net faiz hesaplar. Banka koşullarını siz tanımlarsınız; hiçbir banka kuralı ya da vergi oranı uygulamaya gömülü değildir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculates net interest for TRY demand / overnight deposit accounts. You define the bank terms; no bank rule or tax rate is built into the app."
+          }
+        }
+      }
+    },
+    "Tek bankada en iyisi %@: %@ ile %@ net." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best single bank: %@ — %@ earns %@ net."
+          }
+        }
+      }
+    },
+    "Temizle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear"
+          }
+        }
+      }
+    },
+    "Tercihler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferences"
+          }
+        }
+      }
+    },
+    "Toplam bakiye" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total balance"
+          }
+        }
+      }
+    },
+    "Toplam paranız" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your total"
+          }
+        }
+      }
+    },
+    "Toplam tutar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total amount"
+          }
+        }
+      }
+    },
+    "Tutarı bankalara en yüksek net kazanç için böler ve sonucu açar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Splits the amount across banks for the highest net earnings and opens the result"
+          }
+        }
+      }
+    },
+    "Tüm bankaların bakiyesi girilmiş; her bankada bir kayıt tutulur. Yeni banka Düzenle'den eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every bank already has a balance; each bank holds one record. Add new banks in Edit."
+          }
+        }
+      }
+    },
+    "Tüm veriler yalnız bu cihazda saklanır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All data is stored only on this device."
+          }
+        }
+      }
+    },
+    "Uyarı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disclaimer"
+          }
+        }
+      }
+    },
+    "Uygulama" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        }
+      }
+    },
+    "Vade sonu bakiye" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balance at maturity"
+          }
+        }
+      }
+    },
+    "Vade sonu bakiyeniz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your balance at maturity"
+          }
+        }
+      }
+    },
+    "Vade sonu toplam" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total at maturity"
+          }
+        }
+      }
+    },
+    "Vadesiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idle"
+          }
+        }
+      }
+    },
+    "Vadesiz kalan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kept idle"
+          }
+        }
+      }
+    },
+    "Vadesiz kalan ve faize giren tutarlar başlangıç değerleridir. Bankalar, stopaj ve EFT ücretleri hesap anındaki Düzenle değerleridir; sonraki değişiklikler bu planı değiştirmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idle and interest-bearing amounts are starting values. Banks, withholding and EFT fees are the values in Edit at calculation time; later changes don't affect this plan."
+          }
+        }
+      }
+    },
+    "Vadesiz kalma kuralı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idle Requirement"
+          }
+        }
+      }
+    },
+    "Vadesiz tutar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idle amount"
+          }
+        }
+      }
+    },
+    "Vadesiz yüzdesi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idle percentage"
+          }
+        }
+      }
+    },
+    "Vadesiz yüzdesi %@'e sınırlandı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idle percentage capped at %@."
+          }
+        }
+      }
+    },
+    "Vadesiz şartı toplam bakiyenin tamamını kapsıyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The idle requirement covers the entire balance"
+          }
+        }
+      }
+    },
+    "Vadesiz şartı yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No idle requirement"
+          }
+        }
+      }
+    },
+    "Vazgeç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "Vergi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tax"
+          }
+        }
+      }
+    },
+    "Yatırılan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deposited"
+          }
+        }
+      }
+    },
+    "Yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None"
+          }
+        }
+      }
+    },
+    "Yüzde" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Percentage"
+          }
+        }
+      }
+    },
+    "Yıllık oran" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annual rate"
+          }
+        }
+      }
+    },
+    "değer yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no value"
+          }
+        }
+      }
+    },
+    "en yüksek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "highest"
+          }
+        }
+      }
+    },
+    "en yüksekten %@ az" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ less than the highest"
+          }
+        }
+      }
+    },
+    "gece" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nights"
+          }
+        }
+      }
+    },
+    "gece (tekil)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "night"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gece"
+          }
+        }
+      }
+    },
+    "girilen oran" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the entered rate"
+          }
+        }
+      }
+    },
+    "gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "days"
+          }
+        }
+      }
+    },
+    "gün (tekil)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "day"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gün"
+          }
+        }
+      }
+    },
+    "kademeli vadesiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tiered idle"
+          }
+        }
+      }
+    },
+    "net kazanç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "net earnings"
+          }
+        }
+      }
+    },
+    "stopaj %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "withholding %@"
+          }
+        }
+      }
+    },
+    "vadesiz yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no idle"
+          }
+        }
+      }
+    },
+    "Özet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summary"
+          }
+        }
+      }
+    },
+    "Özet'te seçili banka" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bank selected in Summary"
+          }
+        }
+      }
+    },
+    "Üst kademeye (%@ ₺) kalan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left to next tier (₺%@)"
+          }
+        }
+      }
+    },
+    "Üst sınır" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upper limit"
+          }
+        }
+      }
+    },
+    "İlan edilen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advertised"
+          }
+        }
+      }
+    },
+    "İlan edilen %@, paranıza brüt %@, stopaj sonrası net %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advertised %@, your gross %@, net after withholding %@"
+          }
+        }
+      }
+    },
+    "İlan edilenden cebinize" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From advertised to your pocket"
+          }
+        }
+      }
+    },
+    "İlan tabanı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate basis"
+          }
+        }
+      }
+    },
+    "Şart türü" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requirement type"
+          }
+        }
+      }
+    },
+    "—" : {
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.0"
+}

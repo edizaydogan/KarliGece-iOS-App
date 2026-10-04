@@ -14,11 +14,12 @@ struct SummaryScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .largeTitle) private var heroSize: CGFloat = 44
     @FocusState private var dayCountFocused: Bool
 
-    private let cutoffNote = "Bankaların son işlem saati (cut-off) vardır; saat sınırından sonraki transferler ertesi iş günü valörüyle işleyebilir."
-    private let valorNote = "Hafta içi kazanç ertesi gün 00:00, hafta sonu (Cuma–Pazar) Pazartesi 00:00 valörüyle bakiyeye eklenip bileşiklenir. Bitiş hafta sonuna denk gelirse ilk iş gününe (Pazartesi) alınır."
+    private let cutoffNote: LocalizedStringKey = "Bankaların son işlem saati (cut-off) vardır; saat sınırından sonraki transferler ertesi iş günü valörüyle işleyebilir."
+    private let valorNote: LocalizedStringKey = "Hafta içi kazanç ertesi gün 00:00, hafta sonu (Cuma–Pazar) Pazartesi 00:00 valörüyle bakiyeye eklenip bileşiklenir. Bitiş hafta sonuna denk gelirse ilk iş gününe (Pazartesi) alınır."
 
     var body: some View {
         @Bindable var state = state
@@ -86,7 +87,9 @@ struct SummaryScreen: View {
                     .frame(width: 56)
                     .focused($dayCountFocused)
                     .accessibilityIdentifier("dayCountField")
-                Text("gece").foregroundStyle(.slate)
+                // Tekil/çoğul ayrı anahtar: Türkçede ikisi de "gece", İngilizcede
+                // "night" / "nights" (sayı alanın içinde, metinde yok).
+                Text(state.nights == 1 ? "gece (tekil)" : "gece").foregroundStyle(.slate)
                 // Yön-farkında: "+" hafta sonunu ileri (Cuma→Pzt), "−" geri
                 // (Pzt→Cuma) atlar. Değer bağlaması tek yönlü ileri snap'te
                 // takıldığı için onIncrement/onDecrement kullanılır.
@@ -121,20 +124,20 @@ struct SummaryScreen: View {
 
     /// Vade uzunluğuna göre başlık ("1 gecelik net kazanç" / "10 gecelik net kazanç").
     private var horizonLabel: String {
-        "\(state.nights) gecelik net kazanç"
+        locale.localized("\(state.nights) gecelik net kazanç")
     }
 
     private func heroDisplay(_ result: InterestResult) -> (value: Money, color: Color, message: String?) {
         if result.netInterest > 0 {
             return (result.netInterest, .aurora, nil)
         }
-        return (0, .slate, ResultMessages.zeroEarningsReason(for: result, nights: state.nights)?.text)
+        return (0, .slate, ResultMessages.zeroEarningsReason(for: result, nights: state.nights)?.text(locale))
     }
 
     private func heroCard(_ result: InterestResult) -> some View {
         let display = heroDisplay(result)
         let shape = RoundedRectangle(cornerRadius: 24, style: .continuous)
-        let accessibility = "\(horizonLabel), \(display.value.formatted(.currency(code: "TRY")))"
+        let accessibility = "\(horizonLabel), \(moneyText(display.value))"
 
         return ZStack {
             shape.fill(Color.drift)
@@ -193,7 +196,7 @@ struct SummaryScreen: View {
 
     @ViewBuilder
     private func notes(_ result: InterestResult) -> some View {
-        let messages = ResultMessages.warnings(for: result.diagnostics)
+        let messages = ResultMessages.warnings(for: result.diagnostics, locale: locale)
         if !messages.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(messages.enumerated()), id: \.offset) { _, item in
@@ -216,9 +219,9 @@ struct SummaryScreen: View {
     }
 
     private func effectiveRateRow(_ result: InterestResult) -> some View {
-        let announced = announcedRatePercent.map { "%\($0.grouped(fractionDigits: 0...2))" } ?? "—"
-        let gross = result.grossEffectiveAnnualRate.map { "%\($0.percentValue.grouped(fractionDigits: 2))" } ?? "—"
-        let net = result.netEffectiveAnnualRate.map { "%\($0.percentValue.grouped(fractionDigits: 2))" } ?? "—"
+        let announced = announcedRatePercent.map { $0.percentText(fractionDigits: 0...2, locale: locale) } ?? "—"
+        let gross = result.grossEffectiveAnnualRate.map { $0.percentValue.percentText(fractionDigits: 2...2, locale: locale) } ?? "—"
+        let net = result.netEffectiveAnnualRate.map { $0.percentValue.percentText(fractionDigits: 2...2, locale: locale) } ?? "—"
 
         return VStack(alignment: .leading, spacing: 12) {
             Text("İlan edilenden cebinize")
@@ -246,7 +249,7 @@ struct SummaryScreen: View {
             .foregroundStyle(.slate)
     }
 
-    private func stageChip(_ label: String, _ value: String, _ color: Color) -> some View {
+    private func stageChip(_ label: LocalizedStringKey, _ value: String, _ color: Color) -> some View {
         VStack(spacing: 4) {
             Text(value)
                 .font(.system(.body, design: .rounded).weight(.medium))
@@ -266,10 +269,8 @@ struct SummaryScreen: View {
     // MARK: - Dağılım şelalesi
 
     private var withholdingLabel: String {
-        if let value = DecimalInputParser.parse(state.withholdingText) {
-            return "%\(value.grouped(fractionDigits: 0...2))"
-        }
-        return "%0"
+        let value = DecimalInputParser.parse(state.withholdingText) ?? 0
+        return value.percentText(fractionDigits: 0...2, locale: locale)
     }
 
     private func waterfallCard(_ result: InterestResult) -> some View {
@@ -296,7 +297,7 @@ struct SummaryScreen: View {
     }
 
     @ViewBuilder
-    private func moneyRow(_ label: String, _ value: Money, emphasized: Bool = false) -> some View {
+    private func moneyRow(_ label: LocalizedStringKey, _ value: Money, emphasized: Bool = false) -> some View {
         let labelText = Text(label)
             .font(emphasized ? .headline : .body)
             .foregroundStyle(emphasized ? .ink : .slate)
@@ -315,9 +316,9 @@ struct SummaryScreen: View {
     }
 
     @ViewBuilder
-    private func deductionRow(_ label: String, _ value: Money) -> some View {
+    private func deductionRow(_ label: LocalizedStringKey, _ value: Money) -> some View {
         let labelText = Text(label).font(.callout).foregroundStyle(.slate)
-        let valueText = Text("− " + value.formatted(.currency(code: "TRY")))
+        let valueText = Text("− " + moneyText(value))
             .font(.system(.callout, design: .rounded).weight(.medium))
             .foregroundStyle(.slate)
             .monospacedDigit()
@@ -334,22 +335,9 @@ struct SummaryScreen: View {
 
     private func appliedTierBadge(_ result: InterestResult) -> String? {
         guard let tier = result.breakdown.appliedTier else { return nil }
-        let range: String
-        switch (tier.lowerBound, tier.upperBound) {
-        case (nil, let upper?):        range = "\(money0(upper)) ₺'nin altı"
-        case (let lower?, let upper?): range = "\(money0(lower)) – \(money0(upper)) ₺ arası"
-        case (let lower?, nil):        range = "\(money0(lower)) ₺ ve üzeri"
-        case (nil, nil):               range = "Her tutar"
-        }
-        let requirement: String
-        switch tier.requirement {
-        case .fixedAmount(let amount): requirement = "\(money0(amount)) ₺ vadesiz"
-        case .percentage(let pct):     requirement = "%\(pct.percentValue.grouped(fractionDigits: 0...2)) vadesiz"
-        }
-        return "\(range) → \(requirement)"
+        let range = TierSummaryText.rangeText(lower: tier.lowerBound, upper: tier.upperBound, locale: locale)
+        return "\(range) → \(TierSummaryText.requirementText(tier.requirement, locale: locale))"
     }
-
-    private func money0(_ value: Money) -> String { value.grouped(fractionDigits: 0) }
 
     private func tierBadge(_ text: String) -> some View {
         HStack(spacing: 8) {
@@ -381,12 +369,13 @@ struct SummaryScreen: View {
     }
 
     private func explanation(_ result: InterestResult) -> String {
-        let bearing = result.interestBearingBalance.formatted(.currency(code: "TRY"))
-        let gross = result.totalGrossInterest.formatted(.currency(code: "TRY"))
-        let net = result.netInterest.formatted(.currency(code: "TRY"))
-        let rate = announcedRatePercent.map { "%\($0.grouped(fractionDigits: 0...2))" } ?? "girilen oran"
+        let bearing = moneyText(result.interestBearingBalance)
+        let gross = moneyText(result.totalGrossInterest)
+        let net = moneyText(result.netInterest)
+        let rate = announcedRatePercent.map { $0.percentText(fractionDigits: 0...2, locale: locale) }
+            ?? locale.localized("girilen oran")
         let nights = state.nights
-        return "Faize giren \(bearing) üzerinden \(rate) yıllık oranla \(nights) gece boyunca hesaplandı. Hafta içi kazanç ertesi gün 00:00 valörüyle bakiyeye eklenip bileşiklenir; Cuma–Pazar kazancı Pazartesi 00:00 valörüyle toplu işlenir. Toplam brüt \(gross), \(withholdingLabel) stopaj sonrası net \(net)."
+        return locale.localized("Faize giren \(bearing) üzerinden \(rate) yıllık oranla \(nights) gece boyunca hesaplandı. Hafta içi kazanç ertesi gün 00:00 valörüyle bakiyeye eklenip bileşiklenir; Cuma–Pazar kazancı Pazartesi 00:00 valörüyle toplu işlenir. Toplam brüt \(gross), \(withholdingLabel) stopaj sonrası net \(net).")
     }
 
     // MARK: - Boş durum + disclaimer
@@ -416,12 +405,16 @@ struct SummaryScreen: View {
     }
 
     private var disclaimer: some View {
-        Text(ResultMessages.disclaimer)
+        Text(ResultMessages.disclaimer(locale))
             .font(.footnote)
             .foregroundStyle(.slate)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
             .padding(.top, 4)
+    }
+
+    private func moneyText(_ value: Money) -> String {
+        value.formatted(.currency(code: "TRY").locale(locale))
     }
 }
 

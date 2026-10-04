@@ -187,9 +187,10 @@
 				};
 			};
 			buildConfigurationList = 7A3748B6304DE7B4006CDC10 /* Build configuration list for PBXProject "InterestCalculator" */;
-			developmentRegion = en;
+			developmentRegion = tr;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				tr,
 				en,
 				Base,
 			);

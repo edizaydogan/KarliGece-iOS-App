@@ -14,10 +14,11 @@ import SwiftUI
 struct HoldingsScreen: View {
     @Environment(AppState.self) private var state
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .largeTitle) private var heroSize: CGFloat = 36
     @State private var isAdding = false
 
-    private let accrualNote = "Faiz, bağlı bankanın Düzenle'deki koşulları ve stopajla her açılışta eklenir: hafta içi kazanç ertesi gün, Cuma–Pazar kazancı Pazartesi. Bankanızın tahakkukundan kuruş farkı olabilir; gerekirse bakiyeyi düzeltin."
+    private let accrualNote: LocalizedStringKey = "Faiz, bağlı bankanın Düzenle'deki koşulları ve stopajla her açılışta eklenir: hafta içi kazanç ertesi gün, Cuma–Pazar kazancı Pazartesi. Bankanızın tahakkukundan kuruş farkı olabilir; gerekirse bakiyeyi düzeltin."
 
     var body: some View {
         List {
@@ -85,7 +86,7 @@ struct HoldingsScreen: View {
                 .font(.subheadline)
                 .foregroundStyle(.slate)
             if accrued > 0 {
-                Text("\(HoldingText.signedMoney(accrued)) faiz eklendi")
+                Text("\(HoldingText.signedMoney(accrued, locale: locale)) faiz eklendi")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.aurora)
                     .monospacedDigit()
@@ -134,7 +135,7 @@ struct HoldingsScreen: View {
                     .font(.body.weight(.semibold))
                     .foregroundStyle(.ink)
                 if let bank {
-                    Text(HoldingText.rateCaption(for: bank))
+                    Text(HoldingText.rateCaption(for: bank, locale: locale))
                         .font(.caption)
                         .foregroundStyle(.slate)
                 } else {
@@ -153,7 +154,7 @@ struct HoldingsScreen: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 if holding.accruedInterest > 0 {
-                    Text(HoldingText.signedMoney(holding.accruedInterest))
+                    Text(HoldingText.signedMoney(holding.accruedInterest, locale: locale))
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.aurora)
                         .monospacedDigit()
@@ -165,7 +166,7 @@ struct HoldingsScreen: View {
     }
 
     private func moneyText(_ value: Money) -> String {
-        value.formatted(.currency(code: "TRY"))
+        value.formatted(.currency(code: "TRY").locale(locale))
     }
 }
 

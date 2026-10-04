@@ -11,8 +11,8 @@ import SwiftUI
 struct ProfileMenuRow: View {
     let systemImage: String
     let tint: Color
-    let title: String
-    var subtitle: String? = nil
+    let title: LocalizedStringKey
+    var subtitle: LocalizedStringKey? = nil
     @ScaledMetric(relativeTo: .body) private var tileSize: CGFloat = 30
 
     var body: some View {

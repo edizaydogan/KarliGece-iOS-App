@@ -24,6 +24,7 @@ struct CompareScreen: View {
     @Environment(AppState.self) private var state
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.locale) private var locale
     @FocusState private var focused: EditorField?
     /// Karşılaştır'ın kendi banka seçimi. nil = henüz tohumlanmadı.
     @State private var selection: CompareSelection?
@@ -31,13 +32,13 @@ struct CompareScreen: View {
     /// kadar Düzenle'deki tutar okunur ama hiçbir zaman YAZILMAZ.
     @State private var balanceText: String?
 
-    private let valorNote = "Kazançlar bugünden başlar. Hafta içi kazanç ertesi gün, hafta sonu (Cuma–Pazar) kazancı Pazartesi valörüyle bakiyeye eklenip bileşiklenir."
+    private let valorNote: String.LocalizationValue = "Kazançlar bugünden başlar. Hafta içi kazanç ertesi gün, hafta sonu (Cuma–Pazar) kazancı Pazartesi valörüyle bakiyeye eklenip bileşiklenir."
 
     var body: some View {
         let current = selection ?? CompareSelection(seed: state.selectedBank?.id)
         let balance = balanceBinding
         let table = CompareTable(state: state, selection: current,
-                                 balance: DecimalInputParser.parse(balance.wrappedValue))
+                                 balance: DecimalInputParser.parse(balance.wrappedValue), locale: locale)
 
         ZStack {
             Color.snowfield.ignoresSafeArea()
@@ -249,9 +250,8 @@ struct CompareScreen: View {
 
     /// İlan edilen oran ve tabanı ("%45 · brüt").
     private func rateCaption(_ bank: BankConditionDraft) -> String {
-        guard let rate = DecimalInputParser.parse(bank.annualRateText) else { return "Oran yok" }
-        let basis = bank.rateBasis == .net ? "net" : "brüt"
-        return "%\(rate.grouped(fractionDigits: 0...2)) · \(basis)"
+        guard let rate = DecimalInputParser.parse(bank.annualRateText) else { return locale.localized("Oran yok") }
+        return MaxPlanText.rateCaption(percent: rate, isNet: bank.rateBasis == .net, locale: locale)
     }
 
     // MARK: - Kartlar
@@ -260,11 +260,11 @@ struct CompareScreen: View {
         card("Oranlar") {
             metricRow("Brüt faiz (yıllık)", count: table.columns.count) { column in
                 valueCell(percentText(table.oneDay(column)?.grossEffectiveAnnualRate),
-                          accessibility: "\(table.names[column]), brüt faiz yıllık")
+                          accessibility: locale.localized("\(table.names[column]), brüt faiz yıllık"))
             }
             metricRow("Net faiz (yıllık)", count: table.columns.count) { column in
                 valueCell(percentText(table.oneDay(column)?.netEffectiveAnnualRate),
-                          accessibility: "\(table.names[column]), net faiz yıllık")
+                          accessibility: locale.localized("\(table.names[column]), net faiz yıllık"))
             }
         }
     }
@@ -285,22 +285,22 @@ struct CompareScreen: View {
         return card("Bakiye dağılımı (başlangıç)") {
             metricRow("Vadesiz kalan", count: count) { column in
                 valueCell(moneyText(table.oneDay(column)?.idleAmount),
-                          accessibility: "\(table.names[column]), vadesiz kalan")
+                          accessibility: locale.localized("\(table.names[column]), vadesiz kalan"))
             }
             metricRow("Faize giren", count: count) { column in
                 valueCell(moneyText(table.oneDay(column)?.interestBearingBalance),
-                          accessibility: "\(table.names[column]), faize giren")
+                          accessibility: locale.localized("\(table.names[column]), faize giren"))
             }
             if showsExcess {
                 metricRow("Limit üstü (faizsiz)", count: count) { column in
                     valueCell(moneyText(table.oneDay(column)?.excessAboveCap),
-                              accessibility: "\(table.names[column]), limit üstü faizsiz")
+                              accessibility: locale.localized("\(table.names[column]), limit üstü faizsiz"))
                 }
             }
         }
     }
 
-    private func card<Content: View>(_ title: String, caption: String? = nil,
+    private func card<Content: View>(_ title: LocalizedStringKey, caption: LocalizedStringKey? = nil,
                                       @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
@@ -324,7 +324,7 @@ struct CompareScreen: View {
     // MARK: - Satırlar ve hücreler
 
     /// Tam genişlik satır başlığı + altında eşit sütunlu değerler.
-    private func metricRow<Cell: View>(_ label: String, count: Int,
+    private func metricRow<Cell: View>(_ label: LocalizedStringKey, count: Int,
                                        @ViewBuilder cell: @escaping (Int) -> Cell) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label)
@@ -338,13 +338,14 @@ struct CompareScreen: View {
 
     /// VoiceOver satır satır okur: etiket banka adını içermeli.
     private func valueCell(_ text: String, accessibility: String) -> some View {
-        Text(text)
+        let value = text == "—" ? locale.localized("değer yok") : text
+        return Text(text)
             .font(.system(.body, design: .rounded).weight(.medium))
             .foregroundStyle(.ink)
             .monospacedDigit()
             .lineLimit(1)
             .minimumScaleFactor(0.6)
-            .accessibilityLabel("\(accessibility), \(text == "—" ? "değer yok" : text)")
+            .accessibilityLabel(Text(verbatim: "\(accessibility), \(value)"))
     }
 
     /// Net kazanç hücresi: kazanan aurora + ikon, diğerleri altında "−₺X" farkı
@@ -352,7 +353,7 @@ struct CompareScreen: View {
     @ViewBuilder
     private func earningsCell(_ table: CompareTable, horizon: Int, column: Int) -> some View {
         let days = CompareCalculator.horizons[horizon]
-        let label = "\(table.names[column]), \(days) günlük net kazanç"
+        let label = locale.localized("\(table.names[column]), \(days) günlük net kazanç")
         if let net = table.net(column, horizon) {
             let rank = table.ranks[horizon][column]
             VStack(spacing: 2) {
@@ -387,10 +388,10 @@ struct CompareScreen: View {
     }
 
     private func earningsAccessibility(_ label: String, net: Money, rank: CompareRank) -> String {
-        var text = "\(label), \(moneyText(net))"
-        if rank.isBest { text += ", en yüksek" }
-        if let shortfall = rank.shortfall { text += ", en yüksekten \(moneyText(shortfall)) az" }
-        return text
+        var parts = [label, moneyText(net)]
+        if rank.isBest { parts.append(locale.localized("en yüksek")) }
+        if let shortfall = rank.shortfall { parts.append(locale.localized("en yüksekten \(moneyText(shortfall)) az")) }
+        return parts.joined(separator: ", ")
     }
 
     // MARK: - Büyük erişilebilirlik boyutu: yığılmış düzen
@@ -418,7 +419,7 @@ struct CompareScreen: View {
     @ViewBuilder
     private func stackedEarningsRow(_ table: CompareTable, horizon: Int, column: Int) -> some View {
         let days = CompareCalculator.horizons[horizon]
-        let label = "\(days) günlük net kazanç"
+        let label: LocalizedStringKey = "\(days) günlük net kazanç"
         if let net = table.net(column, horizon) {
             let rank = table.ranks[horizon][column]
             stackedRow(label, stackedEarningsText(net: net, rank: rank), emphasized: rank.isBest)
@@ -429,13 +430,13 @@ struct CompareScreen: View {
     }
 
     private func stackedEarningsText(net: Money, rank: CompareRank) -> String {
-        var text = moneyText(net)
-        if rank.isBest { text += " · en yüksek" }
-        if let shortfall = rank.shortfall { text += " · −\(moneyText(shortfall))" }
-        return text
+        var parts = [moneyText(net)]
+        if rank.isBest { parts.append(locale.localized("en yüksek")) }
+        if let shortfall = rank.shortfall { parts.append("−" + moneyText(shortfall)) }
+        return parts.joined(separator: " · ")
     }
 
-    private func stackedRow(_ label: String, _ value: String, emphasized: Bool = false) -> some View {
+    private func stackedRow(_ label: LocalizedStringKey, _ value: String, emphasized: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
                 .font(.subheadline)
@@ -470,9 +471,9 @@ struct CompareScreen: View {
                 }
                 Spacer().frame(height: 4)
             }
-            noteText("Oranlar: vadesiz şart, limit ve \(withholdingLabel) stopaj dahil, bileşiksiz yıllık oran (365 gün). Bileşiğin etkisi kazanç satırlarında görünür.", tone: .info)
-            noteText(valorNote, tone: .info)
-            noteText("Buradaki tutar ve banka seçimleri Düzenle'yi ve Özet'i etkilemez.", tone: .info)
+            noteText(locale.localized("Oranlar: vadesiz şart, limit ve \(withholdingLabel) stopaj dahil, bileşiksiz yıllık oran (365 gün). Bileşiğin etkisi kazanç satırlarında görünür."), tone: .info)
+            noteText(locale.localized(valorNote), tone: .info)
+            noteText(locale.localized("Buradaki tutar ve banka seçimleri Düzenle'yi ve Özet'i etkilemez."), tone: .info)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 4)
@@ -485,7 +486,7 @@ struct CompareScreen: View {
     }
 
     private var disclaimer: some View {
-        Text(ResultMessages.disclaimer)
+        Text(ResultMessages.disclaimer(locale))
             .font(.footnote)
             .foregroundStyle(.slate)
             .multilineTextAlignment(.center)
@@ -518,18 +519,16 @@ struct CompareScreen: View {
 
     /// Özet'teki `withholdingLabel` ile aynı mantık; oran koda gömülmez.
     private var withholdingLabel: String {
-        if let value = DecimalInputParser.parse(state.withholdingText) {
-            return "%\(value.grouped(fractionDigits: 0...2))"
-        }
-        return "%0"
+        let value = DecimalInputParser.parse(state.withholdingText) ?? 0
+        return value.percentText(fractionDigits: 0...2, locale: locale)
     }
 
     private func percentText(_ value: Percentage?) -> String {
-        value.map { "%\($0.percentValue.grouped(fractionDigits: 2))" } ?? "—"
+        value.map { $0.percentValue.percentText(fractionDigits: 2...2, locale: locale) } ?? "—"
     }
 
     private func moneyText(_ value: Money?) -> String {
-        value.map { $0.formatted(.currency(code: "TRY")) } ?? "—"
+        value.map { $0.formatted(.currency(code: "TRY").locale(locale)) } ?? "—"
     }
 
     private var hairline: some View {
@@ -555,7 +554,8 @@ private struct CompareTable {
     let sharedNotes: [ResultMessages.Warning]
 
     /// `balance`: Karşılaştır'ın KENDİ tutarı (Düzenle'deki değil); nil → hücreler "—".
-    init(state: AppState, selection: CompareSelection, balance: Money?) {
+    /// Notlar `locale`'in dilinde.
+    init(state: AppState, selection: CompareSelection, balance: Money?, locale: Locale) {
         let ids = selection.resolvedIDs(in: state.banks.map(\.id))
         let columns = ids.compactMap { id in state.banks.first { $0.id == id } }
         self.columns = columns
@@ -578,9 +578,9 @@ private struct CompareTable {
         ranks = CompareCalculator.horizons.indices.map { horizon in
             CompareCalculator.rank(projected.map { $0[horizon].netInterest })
         }
-        notes = projected.map { Self.columnNotes(for: $0[0]) }
+        notes = projected.map { Self.columnNotes(for: $0[0], locale: locale) }
         sharedNotes = projected.contains { $0[0].diagnostics.contains(.deductionRatesExceedTotal) }
-            ? ResultMessages.warnings(for: [.deductionRatesExceedTotal])
+            ? ResultMessages.warnings(for: [.deductionRatesExceedTotal], locale: locale)
             : []
     }
 
@@ -598,17 +598,20 @@ private struct CompareTable {
     }
 
     /// Bir bankanın notları. Stopaj uyarısı ortaktır, burada tekrarlanmaz.
-    private static func columnNotes(for oneDay: InterestResult) -> [ResultMessages.Warning] {
+    private static func columnNotes(for oneDay: InterestResult, locale: Locale) -> [ResultMessages.Warning] {
         var notes: [ResultMessages.Warning] = []
         if let reason = ResultMessages.zeroEarningsReason(for: oneDay, nights: 1) {
             // Uzun vadeler kuruşu aşabilir: yalnız 1 günlüğün kuruş altı olduğu söylenir.
-            let text = reason == .belowOneKurus ? "1 günlük kazanç kuruşun altında kalıyor" : reason.text
+            let text = reason == .belowOneKurus
+                ? locale.localized("1 günlük kazanç kuruşun altında kalıyor")
+                : reason.text(locale)
             notes.append(.init(text: text, tone: .info))
         }
         if oneDay.diagnostics.contains(.zeroRate) {
-            notes.append(.init(text: "Oran girilmemiş", tone: .info))
+            notes.append(.init(text: locale.localized("Oran girilmemiş"), tone: .info))
         }
-        notes += ResultMessages.warnings(for: oneDay.diagnostics.filter { $0 != .deductionRatesExceedTotal })
+        notes += ResultMessages.warnings(for: oneDay.diagnostics.filter { $0 != .deductionRatesExceedTotal },
+                                         locale: locale)
         return notes
     }
 }

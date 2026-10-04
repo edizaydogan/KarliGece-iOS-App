@@ -18,10 +18,11 @@ struct SessionSnapshot: Codable {
     var banks: [BankConditionDraft]
     /// Max geçmişi. Opsiyonel: bu alandan önce kaydedilmiş oturumlar da çözülsün.
     var maxHistory: [MaxPlanRecord]?
-    /// Profil: kişisel bilgiler, görünüm tercihi ve Bakiyelerim. Opsiyonel: bu
-    /// alanlardan önce kaydedilmiş oturumlar da çözülsün.
+    /// Profil: kişisel bilgiler, görünüm ve dil tercihi, Bakiyelerim. Opsiyonel:
+    /// bu alanlardan önce kaydedilmiş oturumlar da çözülsün.
     var profile: UserProfile?
     var appearance: AppAppearance?
+    var language: AppLanguage?
     var holdings: [Holding]?
 }
 

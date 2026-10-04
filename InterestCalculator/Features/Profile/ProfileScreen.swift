@@ -3,7 +3,7 @@
 //  InterestCalculator
 //
 //  Tab 5 — Profil. Ayarlar tarzı menü listesi: profil kartı (kişisel
-//  bilgiler), Bakiyelerim, görünüm tercihi ve Hakkında. Sekmenin kendi
+//  bilgiler), Bakiyelerim, görünüm ve dil tercihi, Hakkında. Sekmenin kendi
 //  NavigationStack'i vardır; kökte çubuk gizli (Max gibi), başlık yalnız
 //  alt sayfalardaki geri düğmesinde görünür.
 //  Zemin düz snowfield — gece gradyanı yalnız Özet'in.
@@ -59,6 +59,20 @@ struct ProfileScreen: View {
                         debugPrint("[ProfileScreen] Görünüm tercihi değişti: \(appearance).")
                     }
                     .accessibilityIdentifier("profileAppearancePicker")
+
+                    Picker(selection: $state.language) {
+                        ForEach(AppLanguage.allCases) { language in
+                            Text(verbatim: language.nativeName).tag(language)
+                        }
+                    } label: {
+                        ProfileMenuRow(systemImage: "globe", tint: .glacier, title: "Dil")
+                    }
+                    .pickerStyle(.menu)
+                    .tint(.slate)
+                    .onChange(of: state.language) { _, language in
+                        debugPrint("[ProfileScreen] Dil tercihi değişti: \(language).")
+                    }
+                    .accessibilityIdentifier("profileLanguagePicker")
                 }
                 .listRowBackground(Color.drift)
 
@@ -97,9 +111,15 @@ struct ProfileScreen: View {
         return HStack(spacing: 14) {
             ProfileAvatar(initials: state.profile.initials, size: 56)
             VStack(alignment: .leading, spacing: 3) {
-                Text(name ?? "Profilinizi oluşturun")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(.ink)
+                Group {
+                    if let name {
+                        Text(verbatim: name)
+                    } else {
+                        Text("Profilinizi oluşturun")
+                    }
+                }
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(.ink)
                 Text(name == nil ? "Adınızı eklemek için dokunun" : "Kişisel bilgiler")
                     .font(.subheadline)
                     .foregroundStyle(.slate)
@@ -108,9 +128,20 @@ struct ProfileScreen: View {
         .padding(.vertical, 6)
     }
 
-    private var holdingsSubtitle: String {
+    private var holdingsSubtitle: LocalizedStringKey {
         guard !state.holdings.isEmpty else { return "Bankalardaki gerçek bakiyeleriniz" }
-        return "\(state.holdings.count) banka · \(state.totalHoldingsBalance.formatted(.currency(code: "TRY")))"
+        return "\(state.holdings.count) banka · \(state.totalHoldingsBalance, format: .currency(code: "TRY"))"
+    }
+}
+
+extension AppAppearance {
+    /// Seçicideki ad; `Text` çeviriyi `\.locale` ortamının dilinde bulur.
+    var title: LocalizedStringKey {
+        switch self {
+        case .system: return "Sistem"
+        case .light:  return "Açık"
+        case .dark:   return "Koyu"
+        }
     }
 }
 

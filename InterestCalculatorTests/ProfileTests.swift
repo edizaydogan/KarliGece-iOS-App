@@ -147,16 +147,18 @@ struct ProfileTests {
                                      banks: banks, maxHistory: [])
         let json = try #require(String(data: JSONEncoder().encode(legacy), encoding: .utf8))
         #expect(!json.contains("holdings") && !json.contains("profile") && !json.contains("appearance"))
+        #expect(!json.contains("language"))
 
         let decoded = try JSONDecoder().decode(SessionSnapshot.self, from: Data(json.utf8))
         #expect(decoded.holdings == nil)
         #expect(decoded.profile == nil)
         #expect(decoded.appearance == nil)
+        #expect(decoded.language == nil)
         #expect(decoded.banks == banks)
         #expect(decoded.selectedTab == .max)
     }
 
-    @Test("Oturum profili, görünümü, bakiyeleri ve Profil sekmesini taşır")
+    @Test("Oturum profili, görünümü, dili, bakiyeleri ve Profil sekmesini taşır")
     func snapshotCarriesProfile() throws {
         var holding = HoldingLedger.open(bankID: UUID(), bankName: "B", balance: d("60000.37"),
                                          on: CalendarDay(index: 9408))
@@ -166,11 +168,14 @@ struct ProfileTests {
                                        selectedBankID: nil, selectedTab: .profile, banks: [],
                                        maxHistory: nil,
                                        profile: UserProfile(firstName: "Ayşe", lastName: "Yılmaz"),
-                                       appearance: .dark, holdings: [holding])
-        let decoded = try JSONDecoder().decode(SessionSnapshot.self, from: JSONEncoder().encode(snapshot))
+                                       appearance: .dark, language: .english, holdings: [holding])
+        let data = try JSONEncoder().encode(snapshot)
+        #expect(String(data: data, encoding: .utf8)?.contains(#""language":"en""#) == true)
+        let decoded = try JSONDecoder().decode(SessionSnapshot.self, from: data)
         #expect(decoded.holdings == [holding])
         #expect(decoded.profile == snapshot.profile)
         #expect(decoded.appearance == .dark)
+        #expect(decoded.language == .english)
         #expect(decoded.selectedTab == .profile)
     }
 

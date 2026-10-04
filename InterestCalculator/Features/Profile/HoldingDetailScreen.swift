@@ -15,6 +15,7 @@ struct HoldingDetailScreen: View {
     @Environment(AppState.self) private var state
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .largeTitle) private var heroSize: CGFloat = 36
     @State private var isEditing = false
     @State private var confirmsDelete = false
@@ -34,7 +35,7 @@ struct HoldingDetailScreen: View {
                 Color.snowfield.ignoresSafeArea()
             }
         }
-        .navigationTitle(holding.map { state.displayName(for: $0) } ?? "Bakiye")
+        .navigationTitle(holding.map { state.displayName(for: $0) } ?? locale.localized("Bakiye"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -77,15 +78,15 @@ struct HoldingDetailScreen: View {
 
             Section("Özet") {
                 valueRow("Girilen bakiye", moneyText(holding.enteredBalance),
-                         caption: HoldingText.dayText(holding.enteredOn))
-                valueRow("Eklenen faiz", HoldingText.signedMoney(holding.accruedInterest),
+                         caption: HoldingText.dayText(holding.enteredOn, locale: locale))
+                valueRow("Eklenen faiz", HoldingText.signedMoney(holding.accruedInterest, locale: locale),
                          color: holding.accruedInterest > 0 ? .aurora : .ink)
                 if let nightly = state.nightlyNet(for: holding) {
                     valueRow("Gecelik net kazanç", "≈ " + moneyText(nightly))
                 }
                 if pending > 0 {
                     valueRow("Pazartesi eklenecek", "≈ " + moneyText(pending),
-                             caption: "Cuma–Pazar kazancı Pazartesi 00:00'da eklenir")
+                             caption: locale.localized("Cuma–Pazar kazancı Pazartesi 00:00'da eklenir"))
                 }
             }
             .listRowBackground(Color.drift)
@@ -138,11 +139,11 @@ struct HoldingDetailScreen: View {
                 .minimumScaleFactor(0.5)
                 .monospacedDigit()
                 .foregroundStyle(.ink)
-            Text(bank.map { HoldingText.conditionSummary(for: $0, withholdingText: state.withholdingText) }
-                 ?? "Faiz işlemiyor")
+            Text(bank.map { HoldingText.conditionSummary(for: $0, withholdingText: state.withholdingText, locale: locale) }
+                 ?? locale.localized("Faiz işlemiyor"))
                 .font(.subheadline)
                 .foregroundStyle(.slate)
-            Text("\(HoldingText.dayText(holding.asOf)) itibarıyla")
+            Text("\(HoldingText.dayText(holding.asOf, locale: locale)) itibarıyla")
                 .font(.footnote)
                 .foregroundStyle(.slate)
         }
@@ -154,7 +155,7 @@ struct HoldingDetailScreen: View {
     }
 
     @ViewBuilder
-    private func valueRow(_ label: String, _ value: String, caption: String? = nil,
+    private func valueRow(_ label: LocalizedStringKey, _ value: String, caption: String? = nil,
                           color: Color = .ink) -> some View {
         let labelView = VStack(alignment: .leading, spacing: 2) {
             Text(label).foregroundStyle(.slate)
@@ -181,16 +182,16 @@ struct HoldingDetailScreen: View {
         let isInterest = entry.kind != .balanceSet
         return HStack(alignment: .firstTextBaseline, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(HoldingText.title(for: entry))
+                Text(HoldingText.title(for: entry, locale: locale))
                     .foregroundStyle(.ink)
-                Text(HoldingText.dayText(entry.day))
+                Text(HoldingText.dayText(entry.day, locale: locale))
                     .font(.caption)
                     .foregroundStyle(.slate)
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 2) {
                 if isInterest {
-                    Text(HoldingText.signedMoney(entry.change))
+                    Text(HoldingText.signedMoney(entry.change, locale: locale))
                         .font(.system(.body, design: .rounded).weight(.medium))
                         .foregroundStyle(.aurora)
                     Text(moneyText(entry.balanceAfter))
@@ -208,7 +209,7 @@ struct HoldingDetailScreen: View {
     }
 
     private func moneyText(_ value: Money) -> String {
-        value.formatted(.currency(code: "TRY"))
+        value.formatted(.currency(code: "TRY").locale(locale))
     }
 }
 

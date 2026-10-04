@@ -14,13 +14,15 @@ struct DecimalTextField: View {
         case money   // 1.234,56 — grouping + tam 2 hane
         case rate    // 45 / 45,5 — grouping + 0..2 hane
 
-        func normalized(_ value: Decimal) -> String {
+        func normalized(_ value: Decimal, locale: Locale) -> String {
             switch self {
-            case .money: return value.grouped(fractionDigits: 2)
-            case .rate:  return value.grouped(fractionDigits: 0...2)
+            case .money: return value.grouped(fractionDigits: 2, locale: locale)
+            case .rate:  return value.grouped(fractionDigits: 0...2, locale: locale)
             }
         }
     }
+
+    @Environment(\.locale) private var locale
 
     let unit: String
     @Binding var text: String
@@ -49,7 +51,7 @@ struct DecimalTextField: View {
 
     private func normalize() {
         guard let value = DecimalInputParser.parse(text) else { return }
-        let normalized = kind.normalized(value)
+        let normalized = kind.normalized(value, locale: locale)
         debugPrint("[DecimalTextField] \(field) alanı odaktan çıkınca biçimlendirildi: \(text) → \(normalized).")
         text = normalized
     }

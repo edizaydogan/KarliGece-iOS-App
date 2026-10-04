@@ -30,6 +30,9 @@ struct RootTabView: View {
             }
         }
         .preferredColorScheme(state.appearance.colorScheme)
+        // Dil seçimi: altındaki tüm metinler, sayılar ve tarihler bu yerel ayarla
+        // çözülür (sekme adları, sayfalar ve diyaloglar dahil).
+        .environment(\.locale, state.language.locale)
         .onChange(of: scenePhase) { _, phase in
             debugPrint("[RootTabView] Uygulamanın sahne durumu değişti: \(phase).")
             if phase == .active {

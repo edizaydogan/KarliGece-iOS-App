@@ -2,8 +2,8 @@
 //  UserProfile.swift
 //  InterestCalculator
 //
-//  Profil sekmesinin kişisel bilgileri ve görünüm tercihi. Hesap/sunucu yok:
-//  hepsi oturumla birlikte yalnız bu cihazda saklanır.
+//  Profil sekmesinin kişisel bilgileri, görünüm ve dil tercihi. Hesap/sunucu
+//  yok: hepsi oturumla birlikte yalnız bu cihazda saklanır.
 //
 
 import Foundation
@@ -35,12 +35,29 @@ nonisolated enum AppAppearance: String, Hashable, Sendable, Codable, CaseIterabl
     case system, light, dark
 
     var id: Self { self }
+}
 
-    var title: String {
+/// Arayüz dili. Metinler kodda Türkçe yazılır (kaynak dil); İngilizceleri
+/// `Localizable.xcstrings`'tedir. Ham değer .lproj klasörünün dil kodudur.
+nonisolated enum AppLanguage: String, Hashable, Sendable, Codable, CaseIterable, Identifiable {
+    case turkish = "tr"
+    case english = "en"
+
+    var id: Self { self }
+
+    /// Seçicideki ad, her dil kendi dilinde: arayüz hangi dilde olursa olsun
+    /// kullanıcı kendi dilini tanır.
+    var nativeName: String {
         switch self {
-        case .system: return "Sistem"
-        case .light:  return "Açık"
-        case .dark:   return "Koyu"
+        case .turkish: return "Türkçe"
+        case .english: return "English"
         }
+    }
+
+    /// Metinlerin, sayıların ve tarihlerin yerel ayarı: seçilen dil + cihazın
+    /// bölgesi. iOS'un uygulama başına dil ayarı da böyle birleştirir: Türkiye
+    /// bölgesinde English → en_TR (metin ve tarih İngilizce, sayılar ₺100.000,00).
+    var locale: Locale {
+        Locale(languageCode: Locale.LanguageCode(rawValue), languageRegion: Locale.current.region)
     }
 }

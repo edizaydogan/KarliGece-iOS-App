@@ -52,6 +52,19 @@ enum HoldingText {
         }
     }
 
+    /// Hafta sonu kuralı: "1 gecelik" / "3 gecelik".
+    static func weekendInterestText(_ weekendInterest: WeekendInterest, locale: Locale) -> String {
+        switch weekendInterest {
+        case .oneNight:    return locale.localized("1 gecelik")
+        case .threeNights: return locale.localized("3 gecelik")
+        }
+    }
+
+    /// Valör günü ve gece sayısı: "12 Eki 2026 Pzt · 3 gece".
+    static func creditText(_ credit: HoldingLedger.Credit, locale: Locale) -> String {
+        locale.localized("\(dayText(credit.day, locale: locale)) · \(credit.nights) gece")
+    }
+
     /// Gün: "6 Eki 2026 Pzt".
     static func dayText(_ day: CalendarDay, locale: Locale) -> String {
         AccrualCalendar.date(for: day)

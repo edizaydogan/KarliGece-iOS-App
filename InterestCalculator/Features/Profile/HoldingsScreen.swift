@@ -18,7 +18,7 @@ struct HoldingsScreen: View {
     @ScaledMetric(relativeTo: .largeTitle) private var heroSize: CGFloat = 36
     @State private var isAdding = false
 
-    private let accrualNote: LocalizedStringKey = "Faiz, bağlı bankanın Düzenle'deki koşulları ve stopajla her açılışta eklenir: hafta içi kazanç ertesi gün, Cuma–Pazar kazancı Pazartesi. Bankanızın tahakkukundan kuruş farkı olabilir; gerekirse bakiyeyi düzeltin."
+    private let accrualNote: LocalizedStringKey = "Faiz, bağlı bankanın Düzenle'deki koşulları ve stopajla her açılışta eklenir: hafta içi kazanç ertesi gün, hafta sonu kazancı kaydın seçimine göre her gece (1 gecelik) ya da Pazartesi toplu (3 gecelik). Bankanızın tahakkukundan kuruş farkı olabilir; gerekirse bakiyeyi düzeltin."
 
     var body: some View {
         List {

@@ -111,6 +111,9 @@ struct LocalizationTests {
         #expect(english.localized("\("₺5,00") · \(1) gün") == "₺5,00 · 1 day")
         #expect(english.localized("\("₺5,00") · \(10) gün") == "₺5,00 · 10 days")
         #expect(turkish.localized("\(2) banka · \("₺5,00")") == "2 banka · ₺5,00")
+        #expect(english.localized("\("Mon 12 Oct") · \(1) gece") == "Mon 12 Oct · 1 night")
+        #expect(english.localized("\("Mon 12 Oct") · \(3) gece") == "Mon 12 Oct · 3 nights")
+        #expect(turkish.localized("\("12 Eki Pzt") · \(3) gece") == "12 Eki Pzt · 3 gece")
     }
 
     @Test("Birim etiketi: Türkçede tekil/çoğul aynı, İngilizcede ayrı")
@@ -147,6 +150,11 @@ struct LocalizationTests {
                                  change: 1, balanceAfter: 1)
         #expect(HoldingText.title(for: entry, locale: english) == "Interest · 3 nights")
         #expect(HoldingText.title(for: entry, locale: turkish) == "Faiz · 3 gece")
+        #expect(HoldingText.weekendInterestText(.oneNight, locale: english) == "1-night")
+        #expect(HoldingText.weekendInterestText(.threeNights, locale: turkish) == "3 gecelik")
+        let credit = HoldingLedger.Credit(day: CalendarDay(index: 9415), nights: 3)
+        #expect(HoldingText.creditText(credit, locale: english).hasSuffix(" · 3 nights"))
+        #expect(HoldingText.creditText(credit, locale: turkish).hasSuffix(" · 3 gece"))
         #expect(TierSummaryText.rangeText(lower: nil, upper: 50_000, locale: english) == "Below ₺50.000")
         #expect(TierSummaryText.rangeText(lower: nil, upper: 50_000, locale: turkish) == "50.000 ₺'nin altı")
         #expect(MaxPlanText.rateCaption(percent: 42, isNet: false, locale: english) == "%42 · gross")

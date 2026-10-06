@@ -3,7 +3,7 @@
 //  InterestCalculator
 //
 //  Profil sekmesinin ortak parçaları: Ayarlar tarzı menü satırı (renkli ikon
-//  karosu + başlık + alt başlık) ve baş harfli avatar.
+//  karosu + başlık + alt başlık), baş harfli avatar ve onay kutusu.
 //
 
 import SwiftUI
@@ -59,5 +59,27 @@ struct ProfileAvatar: View {
         }
         .frame(width: size, height: size)
         .accessibilityHidden(true)
+    }
+}
+
+/// Onay kutulu Toggle: iOS'ta yerleşik onay kutusu yok. Kare simge + etiket,
+/// satırın tamamı dokunulabilir. Erişilebilirlikte Toggle anahtar (switch)
+/// olarak kalır, değeri 0/1; ek özellik gerekmez.
+struct CheckboxRowStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button {
+            configuration.isOn.toggle()
+        } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Image(systemName: configuration.isOn ? "checkmark.square.fill" : "square")
+                    .font(.title3)
+                    .foregroundStyle(configuration.isOn ? Color.glacier : Color.slate)
+                    .accessibilityHidden(true)
+                configuration.label
+                Spacer(minLength: 0)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }

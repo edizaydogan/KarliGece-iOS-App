@@ -29,7 +29,7 @@ struct AboutScreen: View {
             Rule(systemImage: "gauge.with.dots.needle.100percent",
                  text: "Max planı kademeli bankada üst kademeye geçmez. EFT ücreti para ayrılan bankanın kazancından bir kez düşülür; kazancı \(threshold) ₺'yi geçmeyen bankaya para ayrılmaz."),
             Rule(systemImage: "banknote",
-                 text: "Bakiyelerim, uygulama her açıldığında valörü gelen net faizi bağlı bankanın Düzenle'deki koşulları ve stopajla bakiyeye ekler."),
+                 text: "Bakiyelerim, uygulama her açıldığında valörü gelen net faizi bağlı bankanın Düzenle'deki koşulları ve stopajla bakiyeye ekler. Hafta sonu faizi her kayıtta 1 gecelik (her gece) ya da 3 gecelik (Pazartesi toplu) seçilir; bugünün faizi kaçırıldıysa o gece ya da Cuma–Pazar'ın 3 gecesi atlanır."),
             Rule(systemImage: "lock",
                  text: "Tüm veriler yalnız bu cihazda saklanır."),
         ]

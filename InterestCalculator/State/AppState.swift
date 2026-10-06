@@ -342,48 +342,58 @@ final class AppState {
     /// plana geçerken) yapılır.
     func accrueHoldings(today: Date = Date()) {
         let day = AccrualCalendar.day(for: today)
-        let withholding = withholdingRule
         for index in holdings.indices {
-            guard let bank = bank(for: holdings[index]) else {
-                debugPrint("[AppState] \(holdings[index].bankName) bakiyesinin bankası Düzenle'de yok, faiz eklenmedi.")
-                continue
-            }
-            // Kopya üzerinde işlet: değişiklik yoksa gözlemcileri boşuna tetikleme.
-            var holding = holdings[index]
-            holding.bankName = displayName(for: bank)
-            let added = HoldingLedger.accrue(&holding, condition: bank.makeCondition(),
-                                             withholding: withholding, through: day)
-            if holding != holdings[index] {
-                holdings[index] = holding
-            }
-            if !added.isEmpty {
-                let total = added.reduce(Money(0)) { $0 + $1.change }
-                debugPrint("[AppState] \(holding.bankName) bakiyesine \(added.count) valör gününün faizi eklendi: +\(total) ₺, bakiye \(holding.balance) ₺.")
-            }
+            accrueHolding(at: index, through: day)
         }
     }
 
-    /// Yeni gerçek bakiye; bakiye bugün itibarıyla geçerlidir. Bankada zaten
-    /// kayıt varsa ya da banka yoksa eklenmez.
+    /// Tek kaydı `day`'e işletir (bkz. `accrueHoldings`).
+    private func accrueHolding(at index: Int, through day: CalendarDay) {
+        guard let bank = bank(for: holdings[index]) else {
+            debugPrint("[AppState] \(holdings[index].bankName) bakiyesinin bankası Düzenle'de yok, faiz eklenmedi.")
+            return
+        }
+        // Kopya üzerinde işlet: değişiklik yoksa gözlemcileri boşuna tetikleme.
+        var holding = holdings[index]
+        holding.bankName = displayName(for: bank)
+        let added = HoldingLedger.accrue(&holding, condition: bank.makeCondition(),
+                                         withholding: withholdingRule, through: day)
+        if holding != holdings[index] {
+            holdings[index] = holding
+        }
+        if !added.isEmpty {
+            let total = added.reduce(Money(0)) { $0 + $1.change }
+            debugPrint("[AppState] \(holding.bankName) bakiyesine \(added.count) valör gününün faizi eklendi: +\(total) ₺, bakiye \(holding.balance) ₺.")
+        }
+    }
+
+    /// Yeni gerçek bakiye; bakiye bugün itibarıyla geçerlidir, faiz kaydın hafta
+    /// sonu kuralıyla bugünün bloğundan (kaçırıldıysa bir sonrakinden) başlar.
+    /// Bankada zaten kayıt varsa ya da banka yoksa eklenmez.
     @discardableResult
-    func addHolding(bankID: UUID, balance: Money, today: Date = Date()) -> UUID? {
+    func addHolding(bankID: UUID, balance: Money, weekendInterest: WeekendInterest = .threeNights,
+                    missesTodaysInterest: Bool = false, today: Date = Date()) -> UUID? {
         guard let bank = banks.first(where: { $0.id == bankID }),
               !holdings.contains(where: { $0.bankID == bankID }) else {
             debugPrint("[AppState] Bakiye eklenmedi: banka yok ya da bankada zaten kayıt var.")
             return nil
         }
         let holding = HoldingLedger.open(bankID: bankID, bankName: displayName(for: bank),
-                                         balance: balance, on: AccrualCalendar.day(for: today))
+                                         balance: balance, on: AccrualCalendar.day(for: today),
+                                         weekendInterest: weekendInterest,
+                                         missesTodaysInterest: missesTodaysInterest)
         holdings.append(holding)
-        debugPrint("[AppState] Bakiye eklendi: \(holding.bankName), \(holding.balance) ₺.")
+        debugPrint("[AppState] Bakiye eklendi: \(holding.bankName), \(holding.balance) ₺, hafta sonu \(weekendInterest), bugünün faizi kaçırıldı: \(missesTodaysInterest), faiz \(AccrualCalendar.date(for: holding.asOf).formatted(date: .numeric, time: .omitted)) gecesinden başlıyor.")
         return holding.id
     }
 
-    /// Kaydın bankasını ve/veya bakiyesini değiştirir. Bakiye değiştiyse yeni
-    /// tutar bugün itibarıyla geçerlidir ("eklenen faiz" sıfırlanır); yalnız
-    /// banka değiştiyse bakiye ve valör günü korunur. Seçilen bankada başka
-    /// kayıt varsa banka değişmez.
-    func updateHolding(_ id: UUID, bankID: UUID, balance: Money, today: Date = Date()) {
+    /// Kaydın bankasını, bakiyesini ve faiz seçimlerini değiştirir. Bakiye ya
+    /// da "bugünün faizini kaçırdım" değiştiyse bakiye bugün itibarıyla bu
+    /// seçimlerle yeniden girilir ("eklenen faiz" sıfırlanır); yalnız banka
+    /// ve/veya hafta sonu kuralı değiştiyse bakiye korunur. Seçilen bankada
+    /// başka kayıt varsa banka değişmez.
+    func updateHolding(_ id: UUID, bankID: UUID, balance: Money, weekendInterest: WeekendInterest,
+                       missesTodaysInterest: Bool, today: Date = Date()) {
         guard let index = holdings.firstIndex(where: { $0.id == id }) else { return }
         if bankID != holdings[index].bankID,
            let bank = banks.first(where: { $0.id == bankID }),
@@ -392,10 +402,17 @@ final class AppState {
             holdings[index].bankName = displayName(for: bank)
             debugPrint("[AppState] Bakiyenin bankası değişti: \(holdings[index].bankName).")
         }
-        if balance != holdings[index].balance {
-            HoldingLedger.setBalance(&holdings[index], to: balance, on: AccrualCalendar.day(for: today))
-            debugPrint("[AppState] \(holdings[index].bankName) bakiyesi elle güncellendi: \(holdings[index].balance) ₺.")
+        let day = AccrualCalendar.day(for: today)
+        var holding = holdings[index]
+        HoldingLedger.edit(&holding, balance: balance, weekendInterest: weekendInterest,
+                           missesTodaysInterest: missesTodaysInterest, on: day)
+        if holding != holdings[index] {
+            holdings[index] = holding
+            debugPrint("[AppState] \(holding.bankName) bakiyesi güncellendi: \(holding.balance) ₺, hafta sonu \(holding.weekendInterest), bugünün faizi kaçırıldı: \(missesTodaysInterest), faiz \(AccrualCalendar.date(for: holding.asOf).formatted(date: .numeric, time: .omitted)) gecesinden başlıyor.")
         }
+        // Yalnız kural değiştiyse valörü gelmiş gece olabilir (Cumartesi 3
+        // gecelikten 1 gecelike geçince Cuma gecesi): hemen eklensin.
+        accrueHolding(at: index, through: day)
     }
 
     func deleteHolding(_ id: UUID) {
@@ -410,8 +427,15 @@ final class AppState {
         debugPrint("[AppState] \(offsets.count) bakiye kaydı silindi, kalan \(holdings.count) kayıt.")
     }
 
-    /// Geçmiş ama valörü Pazartesi gelecek gecelerin net faizi (hafta sonu);
-    /// hafta içi ya da banka yoksa 0.
+    /// Kaydın bir sonraki valör günü ve o gün eklenecek gece sayısı; banka
+    /// yoksa nil (faiz işlemez).
+    func nextCredit(for holding: Holding, today: Date = Date()) -> HoldingLedger.Credit? {
+        guard bank(for: holding) != nil else { return nil }
+        return HoldingLedger.nextCredit(holding, after: AccrualCalendar.day(for: today))
+    }
+
+    /// Geçmiş ama valörü Pazartesi gelecek gecelerin net faizi (3 gecelikte
+    /// hafta sonu); hafta içi, 1 gecelikte ya da banka yoksa 0.
     func pendingInterest(for holding: Holding, today: Date = Date()) -> Money {
         guard let bank = bank(for: holding) else { return 0 }
         return HoldingLedger.pendingInterest(holding, condition: bank.makeCondition(),

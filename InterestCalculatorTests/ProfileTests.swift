@@ -101,6 +101,7 @@ struct ProfileTests {
         #expect(state.displayName(for: holding) == "Şartsız")
         #expect(state.nightlyNet(for: holding) == nil)
         #expect(state.pendingInterest(for: holding, today: date(2026, 10, 10)) == 0)
+        #expect(state.nextCredit(for: holding, today: date(2026, 10, 10)) == nil)
     }
 
     @Test("Güncelleme: yalnız banka değişirse bakiye korunur; tutar değişirse o gün itibarıyla sıfırlanır")
@@ -112,18 +113,57 @@ struct ProfileTests {
         let accrued = state.holdings[0]
         #expect(accrued.balance == d("100203.52"))
 
-        state.updateHolding(id, bankID: state.banks[1].id, balance: accrued.balance, today: date(2026, 10, 7))
+        state.updateHolding(id, bankID: state.banks[1].id, balance: accrued.balance,
+                            weekendInterest: .threeNights, missesTodaysInterest: false, today: date(2026, 10, 7))
         #expect(state.holdings[0].bankID == state.banks[1].id)
         #expect(state.holdings[0].bankName == "Net Banka")
         #expect(state.holdings[0].balance == accrued.balance)
         #expect(state.holdings[0].asOf == accrued.asOf)
         #expect(state.holdings[0].entries == accrued.entries)
 
-        state.updateHolding(id, bankID: state.banks[1].id, balance: d("50000"), today: date(2026, 10, 7))
+        state.updateHolding(id, bankID: state.banks[1].id, balance: d("50000"),
+                            weekendInterest: .threeNights, missesTodaysInterest: false, today: date(2026, 10, 7))
         #expect(state.holdings[0].balance == d("50000"))
         #expect(state.holdings[0].accruedInterest == 0)
         #expect(state.holdings[0].enteredOn == AccrualCalendar.day(for: date(2026, 10, 7)))
         #expect(state.holdings[0].entries.count == accrued.entries.count + 1)
+    }
+
+    @Test("Seçimler AppState'ten geçer: bugünün faizi kaçırılmış Cumartesi girişi hafta sonunu atlar, Salı işler", .tags(.golden))
+    func addWithMissedWeekend() throws {
+        let state = makeState()
+        try #require(state.addHolding(bankID: state.banks[0].id, balance: d("100000"),
+                                      weekendInterest: .threeNights, missesTodaysInterest: true,
+                                      today: date(2026, 10, 10)) != nil)   // Cumartesi
+        let holding = state.holdings[0]
+        #expect(holding.weekendInterest == .threeNights)
+        #expect(holding.missedEntryDayInterest)
+        #expect(state.nextCredit(for: holding, today: date(2026, 10, 10))
+                == HoldingLedger.Credit(day: AccrualCalendar.day(for: date(2026, 10, 13)), nights: 1))
+
+        state.accrueHoldings(today: date(2026, 10, 12))   // Pazartesi: hafta sonu faizi yok
+        #expect(state.holdings[0].balance == d("100000"))
+        state.accrueHoldings(today: date(2026, 10, 13))
+        #expect(state.holdings[0].balance == d("100101.71"))
+    }
+
+    @Test("Yalnız hafta sonu kuralı değişince valörü gelen gece hemen eklenir, eklenen faiz korunur", .tags(.golden))
+    func weekendInterestChangeAccruesImmediately() throws {
+        let state = makeState()
+        let id = try #require(state.addHolding(bankID: state.banks[0].id, balance: d("100000"),
+                                               today: date(2026, 10, 5)))
+        state.accrueHoldings(today: date(2026, 10, 10))   // Cumartesi: Cuma gecesi Pazartesi'yi bekliyor
+        #expect(state.holdings[0].balance == d("100407.46"))
+        #expect(state.pendingInterest(for: state.holdings[0], today: date(2026, 10, 10)) == d("102.13"))
+
+        state.updateHolding(id, bankID: state.banks[0].id, balance: d("100407.46"),
+                            weekendInterest: .oneNight, missesTodaysInterest: false, today: date(2026, 10, 10))
+        #expect(state.holdings[0].weekendInterest == .oneNight)
+        #expect(state.holdings[0].balance == d("100509.59"))   // Cuma gecesi Cumartesi eklendi
+        #expect(state.holdings[0].accruedInterest == d("509.59"))
+        #expect(state.pendingInterest(for: state.holdings[0], today: date(2026, 10, 10)) == 0)
+        #expect(state.nextCredit(for: state.holdings[0], today: date(2026, 10, 10))
+                == HoldingLedger.Credit(day: AccrualCalendar.day(for: date(2026, 10, 11)), nights: 1))
     }
 
     @Test("Silme: kayıt ve onunla birlikte toplam gider; bankası yeniden seçilebilir")

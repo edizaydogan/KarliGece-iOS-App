@@ -172,6 +172,67 @@ final class InterestCalculatorUITests: XCTestCase {
         XCTAssertFalse(element(app, "holdingRow_0").exists)
     }
 
+    /// Bakiye eklerken hafta sonu faizi (1 / 3 gecelik) seçilir, "Bugünün
+    /// faizini kaçırdım" ilk faizin gününü kaydırır; düzenleme ikisini de geri
+    /// getirir. Günler assert EDİLMEZ (test haftanın her günü koşabilir).
+    @MainActor
+    func testHoldingInterestOptions() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uitesting"]   // kalıcılığı atla: bakiye listesi boş başlar
+        app.launch()
+
+        app.tabBars.buttons["Düzenle"].tap()
+        let rate = app.textFields["rateField"]
+        XCTAssertTrue(rate.waitForExistence(timeout: 5))
+        rate.tap()
+        rate.typeText("45")
+        app.buttons["Bitti"].firstMatch.tap()
+
+        app.tabBars.buttons["Profil"].tap()
+        let holdingsRow = element(app, "profileHoldingsRow")
+        XCTAssertTrue(holdingsRow.waitForExistence(timeout: 5))
+        holdingsRow.tap()
+        let add = app.buttons["holdingsAddButton"]
+        XCTAssertTrue(add.waitForExistence(timeout: 5))
+        add.tap()
+
+        // Hafta sonu faizi: 3 gecelik varsayılan, 1 gecelik seçilebilir.
+        let weekend = element(app, "holdingWeekendPicker")
+        XCTAssertTrue(weekend.waitForExistence(timeout: 5))
+        XCTAssertTrue(weekend.buttons["3 gecelik"].isSelected)
+        weekend.buttons["1 gecelik"].tap()
+        XCTAssertTrue(weekend.buttons["1 gecelik"].isSelected)
+
+        // Bugünün faizini kaçırdım: ilk faiz bir blok ileri kayar, geri alınınca döner.
+        let missed = element(app, "holdingMissedTodayToggle")
+        let nextCredit = element(app, "holdingNextCredit")
+        XCTAssertTrue(missed.exists)
+        XCTAssertTrue(nextCredit.exists)
+        XCTAssertEqual(missed.value as? String, "0")
+        let creditToday = nextCredit.label
+        missed.tap()
+        XCTAssertEqual(missed.value as? String, "1")
+        XCTAssertNotEqual(nextCredit.label, creditToday)
+        missed.tap()
+        XCTAssertEqual(nextCredit.label, creditToday)
+        missed.tap()
+
+        let balance = app.textFields["holdingBalanceField"]
+        balance.tap()
+        balance.typeText("100000")
+        app.buttons["holdingSaveButton"].tap()
+
+        // Detay sonraki faizi gösterir; düzenleme seçimleri geri getirir.
+        let row = element(app, "holdingRow_0")
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.tap()
+        XCTAssertTrue(element(app, "holdingDetailNextCredit").waitForExistence(timeout: 5))
+        app.buttons["holdingEditButton"].tap()
+        XCTAssertTrue(weekend.waitForExistence(timeout: 5))
+        XCTAssertTrue(weekend.buttons["1 gecelik"].isSelected)
+        XCTAssertEqual(missed.value as? String, "1")
+    }
+
     @MainActor
     func testEndToEndHappyPath() throws {
         let app = XCUIApplication()

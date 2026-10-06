@@ -3,9 +3,10 @@
 //  InterestCalculator
 //
 //  Bakiyelerim'deki bir kaydın detayı: valörlenmiş bakiye, girilen bakiye ve
-//  o günden bu yana eklenen faiz, gecelik net kazanç, hafta sonu bekleyen
-//  kazanç ve hareketler (giriş + her valör gününün faizi). "Düzenle" bankayı
-//  ya da bakiyeyi değiştirir; "Kaydı sil" onay ister.
+//  o günden bu yana eklenen faiz, gecelik net kazanç, hafta sonu faizi kuralı,
+//  sonraki faizin günü, hafta sonu bekleyen kazanç ve hareketler (giriş + her
+//  valör gününün faizi). "Düzenle" bankayı, bakiyeyi ya da faiz seçimlerini
+//  değiştirir; "Kaydı sil" onay ister.
 //
 
 import SwiftUI
@@ -84,6 +85,11 @@ struct HoldingDetailScreen: View {
                 if let nightly = state.nightlyNet(for: holding) {
                     valueRow("Gecelik net kazanç", "≈ " + moneyText(nightly))
                 }
+                valueRow("Hafta sonu faizi", HoldingText.weekendInterestText(holding.weekendInterest, locale: locale))
+                if let credit = state.nextCredit(for: holding) {
+                    valueRow("Sonraki faiz", HoldingText.creditText(credit, locale: locale))
+                        .accessibilityIdentifier("holdingDetailNextCredit")
+                }
                 if pending > 0 {
                     valueRow("Pazartesi eklenecek", "≈ " + moneyText(pending),
                              caption: locale.localized("Cuma–Pazar kazancı Pazartesi 00:00'da eklenir"))
@@ -143,7 +149,7 @@ struct HoldingDetailScreen: View {
                  ?? locale.localized("Faiz işlemiyor"))
                 .font(.subheadline)
                 .foregroundStyle(.slate)
-            Text("\(HoldingText.dayText(holding.asOf, locale: locale)) itibarıyla")
+            Text("\(HoldingText.dayText(HoldingLedger.balanceDay(holding, today: AccrualCalendar.day(for: Date())), locale: locale)) itibarıyla")
                 .font(.footnote)
                 .foregroundStyle(.slate)
         }

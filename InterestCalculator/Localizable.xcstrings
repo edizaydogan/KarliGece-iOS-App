@@ -51,6 +51,38 @@
         }
       }
     },
+    "%@ · %lld gece" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %#@arg2@"
+          },
+          "substitutions" : {
+            "arg2" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg night"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg nights"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%@ · %lld gün" : {
       "localizations" : {
         "en" : {
@@ -365,6 +397,26 @@
     "1" : {
       "shouldTranslate" : false
     },
+    "1 gecelik" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1-night"
+          }
+        }
+      }
+    },
+    "1 gecelik: hafta sonu da her gece faiz işler, kazanç ertesi gün eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1-night: interest accrues every night, weekends included, and is added the next day."
+          }
+        }
+      }
+    },
     "1 günlük kazanç kuruşun altında kalıyor" : {
       "localizations" : {
         "en" : {
@@ -391,6 +443,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "3 banks"
+          }
+        }
+      }
+    },
+    "3 gecelik" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3-night"
+          }
+        }
+      }
+    },
+    "3 gecelik: Cuma, Cumartesi ve Pazar geceleri Cuma bakiyesi üzerinden işler, toplamı Pazartesi eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3-night: Friday, Saturday and Sunday nights accrue on Friday's balance, and the total is added on Monday."
           }
         }
       }
@@ -535,22 +607,12 @@
         }
       }
     },
-    "Bakiyelerim, uygulama her açıldığında valörü gelen net faizi bağlı bankanın Düzenle'deki koşulları ve stopajla bakiyeye ekler." : {
+    "Bakiyelerim, uygulama her açıldığında valörü gelen net faizi bağlı bankanın Düzenle'deki koşulları ve stopajla bakiyeye ekler. Hafta sonu faizi her kayıtta 1 gecelik (her gece) ya da 3 gecelik (Pazartesi toplu) seçilir; bugünün faizi kaçırıldıysa o gece ya da Cuma–Pazar'ın 3 gecesi atlanır." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Each time the app opens, My Balances adds the net interest whose value date has arrived, using the linked bank's terms in Edit and the withholding rate."
-          }
-        }
-      }
-    },
-    "Bakiyeyi değiştirirseniz yeni tutar bugün itibarıyla geçerli olur ve eklenen faiz sıfırlanır." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "If you change the balance, the new amount applies as of today and the added interest resets."
+            "value" : "Each time the app opens, My Balances adds the net interest whose value date has arrived, using the linked bank's terms in Edit and the withholding rate. Each record's weekend interest is 1-night (every night) or 3-night (together on Monday); if today's interest was missed, that night or Friday–Sunday's 3 nights are skipped."
           }
         }
       }
@@ -561,6 +623,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Edit Balance"
+          }
+        }
+      }
+    },
+    "Bakiyeyi ya da bugünün faizi seçimini değiştirirseniz bakiye bugün itibarıyla yeniden girilir ve eklenen faiz sıfırlanır. Yalnız hafta sonu faizini değiştirmek bakiyeyi korur." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you change the balance or the missed-interest choice, the balance is re-entered as of today and the added interest resets. Changing only the weekend interest keeps the balance."
           }
         }
       }
@@ -635,12 +707,12 @@
         }
       }
     },
-    "Bankanızdaki güncel bakiyeyi girin. Uygulama her açılışta valörü gelen net faizi bu bakiyeye ekler: hafta içi kazanç ertesi gün, Cuma–Pazar kazancı Pazartesi." : {
+    "Bankanızdaki güncel bakiyeyi girin. Uygulama her açılışta valörü gelen net faizi bu bakiyeye ekler; hafta içi kazanç ertesi gün eklenir." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter your current balance at the bank. Each time the app opens, it adds the net interest whose value date has arrived: weekday earnings the next day, Friday–Sunday earnings on Monday."
+            "value" : "Enter your current balance at the bank. Each time the app opens, it adds the net interest whose value date has arrived; weekday earnings are added the next day."
           }
         }
       }
@@ -741,6 +813,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This is an estimate; your bank's actual accrual may differ by a few kuruş. Not investment advice."
+          }
+        }
+      }
+    },
+    "Bu gecenin faizi (1 gece) atlanır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tonight's interest (1 night) is skipped."
           }
         }
       }
@@ -865,6 +947,16 @@
         }
       }
     },
+    "Bugünün faizini kaçırdım" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I missed today's interest"
+          }
+        }
+      }
+    },
     "Buradaki tutar ve banka seçimleri Düzenle'yi ve Özet'i etkilemez." : {
       "localizations" : {
         "en" : {
@@ -881,6 +973,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Splitting earns %@ more"
+          }
+        }
+      }
+    },
+    "Cuma–Pazar faizi (3 gece) atlanır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Friday–Sunday interest (3 nights) is skipped."
           }
         }
       }
@@ -1097,12 +1199,12 @@
         }
       }
     },
-    "Faiz, bağlı bankanın Düzenle'deki koşulları ve stopajla her açılışta eklenir: hafta içi kazanç ertesi gün, Cuma–Pazar kazancı Pazartesi. Bankanızın tahakkukundan kuruş farkı olabilir; gerekirse bakiyeyi düzeltin." : {
+    "Faiz, bağlı bankanın Düzenle'deki koşulları ve stopajla her açılışta eklenir: hafta içi kazanç ertesi gün, hafta sonu kazancı kaydın seçimine göre her gece (1 gecelik) ya da Pazartesi toplu (3 gecelik). Bankanızın tahakkukundan kuruş farkı olabilir; gerekirse bakiyeyi düzeltin." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interest is added each time the app opens, using the linked bank's terms in Edit and the withholding rate: weekday earnings the next day, Friday–Sunday earnings on Monday. It may differ from your bank's accrual by a few kuruş; correct the balance if needed."
+            "value" : "Interest is added each time the app opens, using the linked bank's terms in Edit and the withholding rate: weekday earnings the next day; weekend earnings every night (1-night) or together on Monday (3-night), as set for the record. It may differ from your bank's accrual by a few kuruş; correct the balance if needed."
           }
         }
       }
@@ -1303,6 +1405,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ accrued over the weekend will be added Monday"
+          }
+        }
+      }
+    },
+    "Hafta sonu faizi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekend interest"
           }
         }
       }
@@ -1995,6 +2107,16 @@
         }
       }
     },
+    "Sonraki faiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next interest"
+          }
+        }
+      }
+    },
     "Soyad" : {
       "localizations" : {
         "en" : {
@@ -2563,6 +2685,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rate basis"
+          }
+        }
+      }
+    },
+    "İlk faiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First interest"
           }
         }
       }

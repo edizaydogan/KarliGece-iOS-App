@@ -1,0 +1,9 @@
+{
+  "id" : "292beefc-a765-40cf-bd47-f791ddf47069",
+  "targets" : [
+    {
+      "id" : "7ff13bf1-3a27-4b12-8a4f-4f6b6fe85fdc",
+      "name" : "InterestCalculator"
+    }
+  ]
+}
